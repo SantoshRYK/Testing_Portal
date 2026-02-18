@@ -1,0 +1,543 @@
+{% extends "base.html" %}
+{% block title %}View Quality Record - TestingHub Portal{% endblock %}
+{% block content %}
+<style>
+    .record-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        margin-bottom: 2rem;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    }
+    
+    .dd-display {
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+        margin: 1rem 0;
+    }
+    
+    .dd-value {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .metric-row {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .metric-row:last-child {
+        border-bottom: none;
+    }
+    
+    .metric-row:hover {
+        background: #f8f9fa;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="record-header">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb bg-transparent mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('home.index') }}" class="text-white">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('quality.main') }}" class="text-white">Quality</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('quality.view_records') }}" class="text-white">Records</a>
+                </li>
+                <li class="breadcrumb-item text-white active">{{ record.trial_id }}</li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-2">
+                    <i class="bi bi-file-text"></i> Quality Record Details
+                </h2>
+                <p class="mb-0 lead">{{ record.trial_id }} - {{ record.type_of_requirement }} - Round {{ record.current_round }}</p>
+            </div>
+            <div>
+                {% if user.role in ['superuser', 'admin', 'manager'] or record.created_by == user.username %}
+                <a href="{{ url_for('quality.edit', record_id=record.record_id) }}" 
+                   class="btn btn-warning btn-lg me-2">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                {% endif %}
+                <a href="{{ url_for('quality.view_records') }}" class="btn btn-light btn-lg">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-6">
+            <!-- Trial Information Card -->
+            <div class="info-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Trial Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-tag"></i> Trial ID
+                            </span>
+                            <strong>{{ record.trial_id }}</strong>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-layers"></i> Phase
+                            </span>
+                            <span class="badge bg-info">{{ record.phase }}</span>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-heart-pulse"></i> Therapeutic Area
+                            </span>
+                            <strong>{{ record.therapeutic_area or 'N/A' }}</strong>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-arrow-repeat"></i> Total Trial Rounds
+                            </span>
+                            <strong>{{ record.no_of_rounds }}</strong>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-file-text"></i> Type of Requirement
+                            </span>
+                            <span class="badge bg-primary">{{ record.type_of_requirement }}</span>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-flag"></i> Trial Round
+                            </span>
+                            <span class="badge bg-secondary">Round {{ record.current_round }}</span>
+                        </div>
+                    </div>
+                    <div class="metric-row bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted fw-bold">
+                                <i class="bi bi-arrow-repeat"></i> {{ record.type_of_requirement }} Round
+                            </span>
+                            <span class="badge bg-success fs-6">Round {{ record.requirement_round or 1 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quality Metrics Card -->
+            <div class="info-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart"></i> Quality Metrics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-list-ol"></i> Total Requirements
+                            </span>
+                            <span class="badge bg-primary fs-6">{{ record.total_requirements }}</span>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-exclamation-triangle"></i> Total Failures
+                            </span>
+                            <span class="badge bg-danger fs-6">{{ record.total_failures }}</span>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-check-circle"></i> Passed Requirements
+                            </span>
+                            <span class="badge bg-success fs-6">{{ record.total_requirements - record.total_failures }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Defect Density Display -->
+                    <div class="dd-display">
+                        <div class="text-muted mb-2">Defect Density</div>
+                        <div class="dd-value">
+                            {% set dd = record.defect_density if record.defect_density else 0 %}
+                            {{ "%.2f"|format(dd) }}%
+                        </div>
+                        <div class="mt-2">
+                            {% if dd < 10 %}
+                                <span class="badge bg-success fs-6">🟢 Excellent Quality</span>
+                            {% elif dd < 25 %}
+                                <span class="badge bg-warning fs-6">🟡 Good Quality</span>
+                            {% else %}
+                                <span class="badge bg-danger fs-6">🔴 Needs Attention</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div class="col-md-6">
+            <!-- Failure Reasons Card -->
+            <div class="info-card">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bug"></i> Failure Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-3">
+                        <strong>Total Failures: {{ record.total_failures }}</strong>
+                    </div>
+                    
+                    <!-- Spec Issue -->
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-file-earmark-text"></i> Spec Issue
+                            </span>
+                            <span class="badge bg-primary fs-6">{{ record.spec_issue or 0 }}</span>
+                        </div>
+                        {% if record.spec_issue > 0 and record.total_failures > 0 %}
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 data-issue="spec"
+                                 data-value="{{ record.spec_issue }}"
+                                 data-total="{{ record.total_failures }}">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Mock CRF Issue -->
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-clipboard"></i> Mock CRF Issue
+                            </span>
+                            <span class="badge bg-success fs-6">{{ record.mock_crf_issue or 0 }}</span>
+                        </div>
+                        {% if record.mock_crf_issue > 0 and record.total_failures > 0 %}
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 data-issue="mockcrf"
+                                 data-value="{{ record.mock_crf_issue }}"
+                                 data-total="{{ record.total_failures }}">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Programming Issue -->
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-code-slash"></i> Programming Issue
+                            </span>
+                            <span class="badge bg-warning fs-6">{{ record.programming_issue or 0 }}</span>
+                        </div>
+                        {% if record.programming_issue > 0 and record.total_failures > 0 %}
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar"
+                                 data-issue="programming"
+                                 data-value="{{ record.programming_issue }}"
+                                 data-total="{{ record.total_failures }}">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Scripting Issue -->
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-terminal"></i> Scripting Issue
+                            </span>
+                            <span class="badge bg-danger fs-6">{{ record.scripting_issue or 0 }}</span>
+                        </div>
+                        {% if record.scripting_issue > 0 and record.total_failures > 0 %}
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar bg-danger" role="progressbar"
+                                 data-issue="scripting"
+                                 data-value="{{ record.scripting_issue }}"
+                                 data-total="{{ record.total_failures }}">
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="metric-row bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">
+                                <i class="bi bi-calculator"></i> Total Categorized Issues
+                            </span>
+                            <strong class="fs-5">{{ (record.spec_issue or 0) + (record.mock_crf_issue or 0) + (record.programming_issue or 0) + (record.scripting_issue or 0) }}</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- Failure Chart -->
+                    <div class="mt-4">
+                        <canvas id="failureChart" 
+                                height="250"
+                                data-spec="{{ record.spec_issue|default(0) }}"
+                                data-mockcrf="{{ record.mock_crf_issue|default(0) }}"
+                                data-programming="{{ record.programming_issue|default(0) }}"
+                                data-scripting="{{ record.scripting_issue|default(0) }}">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Information Card -->
+            <div class="info-card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-left-text"></i> Additional Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>
+                            <i class="bi bi-file-earmark-text"></i> Documentation Issues:
+                        </strong>
+                        <p class="mb-0 mt-2 p-3 bg-light rounded">
+                            {{ record.documentation_issues if record.documentation_issues else 'None reported' }}
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <strong>
+                            <i class="bi bi-clock"></i> Timeline Adherence:
+                        </strong>
+                        <p class="mb-0 mt-2 p-3 bg-light rounded">
+                            {{ record.timeline_adherence if record.timeline_adherence else 'N/A' }}
+                        </p>
+                    </div>
+                    <div class="mb-0">
+                        <strong>
+                            <i class="bi bi-hourglass-split"></i> System Deployment Delays:
+                        </strong>
+                        <p class="mb-0 mt-2 p-3 bg-light rounded">
+                            {{ record.system_deployment_delays if record.system_deployment_delays else 'None reported' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Metadata Card -->
+            <div class="info-card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Record Metadata
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-check-circle"></i> Status
+                            </span>
+                            <span class="badge bg-success">{{ record.status or 'Active' }}</span>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-person"></i> Created By
+                            </span>
+                            <strong>{{ record.created_by }}</strong>
+                        </div>
+                    </div>
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-calendar-plus"></i> Created At
+                            </span>
+                            <span>{{ record.created_at[:19] if record.created_at else 'N/A' }}</span>
+                        </div>
+                    </div>
+                    {% if record.updated_at and record.updated_at != record.created_at %}
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-calendar-check"></i> Updated At
+                            </span>
+                            <span>{{ record.updated_at[:19] }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if record.updated_by %}
+                    <div class="metric-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">
+                                <i class="bi bi-person-check"></i> Updated By
+                            </span>
+                            <strong>{{ record.updated_by }}</strong>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+                {% if user.role in ['superuser', 'admin', 'manager'] or record.created_by == user.username %}
+                <a href="{{ url_for('quality.edit', record_id=record.record_id) }}" 
+                   class="btn btn-warning btn-lg">
+                    <i class="bi bi-pencil"></i> Edit Record
+                </a>
+                {% endif %}
+                
+                {% if user.role in ['superuser', 'admin'] or record.created_by == user.username %}
+                <form method="POST" 
+                      action="{{ url_for('quality.delete_route', record_id=record.record_id) }}"
+                      onsubmit="return confirm('Are you sure you want to delete this record? This action cannot be undone.')">
+                    <button type="submit" class="btn btn-danger btn-lg w-100">
+                        <i class="bi bi-trash"></i> Delete Record
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set progress bar widths using JavaScript to avoid CSS parser errors
+    var progressBars = document.querySelectorAll('.progress-bar[data-value]');
+    progressBars.forEach(function(bar) {
+        var value = parseFloat(bar.getAttribute('data-value')) || 0;
+        var total = parseFloat(bar.getAttribute('data-total')) || 1;
+        var percentage = (value / total * 100).toFixed(1);
+        bar.style.width = percentage + '%';
+    });
+    
+    // Failure Chart
+    var canvas = document.getElementById('failureChart');
+    
+    // Get data from data attributes
+    var specIssue = parseInt(canvas.getAttribute('data-spec')) || 0;
+    var mockCrfIssue = parseInt(canvas.getAttribute('data-mockcrf')) || 0;
+    var programmingIssue = parseInt(canvas.getAttribute('data-programming')) || 0;
+    var scriptingIssue = parseInt(canvas.getAttribute('data-scripting')) || 0;
+    
+    var totalFailures = specIssue + mockCrfIssue + programmingIssue + scriptingIssue;
+    
+    if (totalFailures > 0) {
+        new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['Spec Issue', 'Mock CRF Issue', 'Programming Issue', 'Scripting Issue'],
+                datasets: [{
+                    data: [specIssue, mockCrfIssue, programmingIssue, scriptingIssue],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                var value = context.parsed || 0;
+                                var total = context.dataset.data.reduce(function(a, b) { 
+                                    return a + b; 
+                                }, 0);
+                                var percentage = ((value / total) * 100).toFixed(1);
+                                return label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        },
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        canvas.parentElement.innerHTML = 
+            '<div class="alert alert-success text-center">' +
+            '<i class="bi bi-check-circle-fill"></i> <strong>Excellent!</strong><br>' +
+            'No failures recorded for this record!' +
+            '</div>';
+    }
+});
+</script>
+{% endblock %}

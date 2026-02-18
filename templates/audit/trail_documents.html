@@ -1,0 +1,697 @@
+{% extends "base.html" %}
+{% block title %}Trail Audit Documents - TestingHub Portal{% endblock %}
+{% block content %}
+<style>
+    .audit-hero {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 15px;
+        padding: 3rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .audit-hero h1 {
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+    
+    /* ✅ NEW: Audit Reviewer Banner Styles */
+    .audit-reviewer-banner {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        border-radius: 15px;
+        padding: 1.5rem 2rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(6, 182, 212, 0.3);
+        margin-bottom: 2rem;
+        animation: slideDown 0.5s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .audit-reviewer-banner h5 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .audit-reviewer-banner .btn {
+        background: white;
+        color: #0891b2;
+        font-weight: 700;
+        border: none;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .audit-reviewer-banner .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    /* ✅ END NEW STYLES */
+    
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+    }
+    
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .tmf-badge {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 700;
+        display: inline-block;
+        font-size: 0.85rem;
+    }
+    
+    .category-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    
+    .category-build {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    
+    .category-cr {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+    
+    /* DataTable custom styling */
+    .dataTables_wrapper .dataTables_length select {
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        margin-left: 0.5rem;
+    }
+    
+    table.dataTable thead th {
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 700;
+        color: #495057;
+        background-color: #f8f9fa;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    table.dataTable tbody td {
+        font-size: 0.875rem;
+        padding: 0.75rem 0.5rem;
+        vertical-align: middle;
+    }
+    
+    table.dataTable tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    /* Make table scrollable horizontally */
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    /* Compact action buttons */
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Hero Section -->
+    <div class="audit-hero">
+        <h1><i class="bi bi-file-earmark-text"></i> Trail Audit Documents</h1>
+        <p class="lead mb-0">Manage and track trial documentation with TMF/Vault IDs</p>
+    </div>
+    
+    <!-- ✅ NEW: AUDIT REVIEWER BANNER -->
+    {% if user and user.is_audit_reviewer %}
+    <div class="audit-reviewer-banner">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5>
+                    <i class="bi bi-shield-check-fill"></i> 🔍 Audit Reviewer Access Enabled
+                </h5>
+                <p class="mb-2">
+                    <strong>Current View:</strong> You're viewing only YOUR documents 
+                    <span class="badge bg-white text-primary">{{ stats.total if stats else 0 }} document{{ 's' if (stats and stats.total != 1) else '' }}</span>
+                </p>
+                <small>
+                    <i class="bi bi-info-circle-fill"></i> Switch to Audit Reviewer mode to see ALL documents from ALL users (read-only access)
+                </small>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('audit.reviewer_all_documents') }}" class="btn btn-lg">
+                    <i class="bi bi-eye-fill"></i> View ALL Documents
+                    <br>
+                    <small style="font-size: 0.75rem;">(Audit Reviewer Mode)</small>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <!-- ✅ END AUDIT REVIEWER BANNER -->
+    
+    <!-- Quick Stats -->
+    {% if stats %}
+    <div class="stats-card">
+        <h4 class="text-center mb-4"><i class="bi bi-graph-up"></i> Document Statistics</h4>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">Total Documents</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.te_docs }}</div>
+                    <div class="stat-label">TE Documents</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.build }}</div>
+                    <div class="stat-label">Build</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.change_request }}</div>
+                    <div class="stat-label">Change Requests</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Action Buttons -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <a href="{{ url_for('audit.create_trail_document') }}" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-plus-circle"></i> Add Trail Document
+            </a>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-info btn-lg w-100" data-bs-toggle="collapse" data-bs-target="#filterSection">
+                <i class="bi bi-funnel"></i> Toggle Filters
+            </button>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-secondary btn-lg w-100" id="toggleTableBtn">
+                <i class="bi bi-arrows-angle-expand"></i> Toggle Table
+            </button>
+        </div>
+        {% if user.role in ['superuser', 'admin'] %}
+        <div class="col-md-3">
+            <a href="{{ url_for('audit.export_trail_documents') }}" class="btn btn-success btn-lg w-100">
+                <i class="bi bi-download"></i> Export to Excel
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Filters Section (Collapsible) -->
+    <div class="collapse" id="filterSection">
+        <div class="filter-card">
+            <h5 class="mb-4"><i class="bi bi-funnel-fill"></i> Filter Documents</h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Trail ID</label>
+                    <select class="form-select" id="filterTrail">
+                        <option value="">All Trails</option>
+                        {% for trail in trails %}
+                        <option value="{{ trail }}">{{ trail }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Category</label>
+                    <select class="form-select" id="filterCategory">
+                        <option value="">All Categories</option>
+                        <option value="Build">Build</option>
+                        <option value="Change Request">Change Request</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">TE Document</label>
+                    <select class="form-select" id="filterTEDoc">
+                        <option value="">All</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">UAT Round</label>
+                    <select class="form-select" id="filterUatRound">
+                        <option value="">All UAT Rounds</option>
+                        {% for uat_round in uat_rounds %}
+                        <option value="{{ uat_round }}">{{ uat_round }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-secondary" onclick="clearFilters()">
+                        <i class="bi bi-arrow-counterclockwise"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Documents Table -->
+    <div class="stats-card">
+        <h4 class="mb-4">
+            <i class="bi bi-table"></i> Trail Documents 
+            <span class="badge bg-primary">{{ documents|length }}</span>
+        </h4>
+        
+        {% if documents %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped table-sm" id="documentsTable">
+                <thead>
+                    <tr>
+                        <th>Trail ID</th>
+                        <th>Category</th>
+                        <th>TE1</th>
+                        <th>TE2</th>
+                        <th>Document Name</th>
+                        <th>TE Doc</th>
+                        <th>UAT Round</th>
+                        <th>TMF/Vault ID</th>
+                        <th>TE1 Approval</th>
+                        <th>TE2 Approval</th>
+                        <th>CTDM Approval</th>
+                        <th>Go Live Date</th>
+                        <th>Created By</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr>
+                        <td><span class="badge bg-info">{{ doc.trail }}</span></td>
+                        <td>
+                            {% if doc.category == 'Build' %}
+                                <span class="category-badge category-build">🏗️ Build</span>
+                            {% else %}
+                                <span class="category-badge category-cr">🔄 CR</span>
+                                {% if doc.cr_number %}
+                                <br><small>{{ doc.cr_number }}</small>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ doc.te1 }}</strong></td>
+                        <td><strong>{{ doc.te2 }}</strong></td>
+                        <td><strong>{{ doc.document_name }}</strong></td>
+                        <td>
+                            {% if doc.te_document == 'Yes' %}
+                                <span class="badge bg-success">✅ Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">📄 No</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ doc.uat_round }}</td>
+                        <td><span class="tmf-badge">🔑 {{ doc.tmf_vault_id }}</span></td>
+                        <td>
+                            {% if doc.te1_approval_date %}
+                                <span class="badge bg-success">{{ doc.te1_approval_date }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.te2_approval_date %}
+                                <span class="badge bg-success">{{ doc.te2_approval_date }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.ctdm_approval_date %}
+                                <span class="badge bg-success">{{ doc.ctdm_approval_date }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ doc.go_live_date }}</td>
+                        <td><small>{{ doc.created_by }}</small></td>
+                        <td><small>{{ doc.created_at[:10] if doc.created_at else '-' }}</small></td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-info" data-bs-toggle="modal" 
+                                        data-bs-target="#viewModal{{ doc.id }}"
+                                        title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                {% if user.role in ['superuser', 'admin', 'manager'] or doc.created_by == user.username %}
+                                <a href="{{ url_for('audit.edit_trail_document', document_id=doc.id) }}" 
+                                   class="btn btn-warning"
+                                   title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                                {% if user.role in ['superuser', 'admin'] or doc.created_by == user.username %}
+                                <button class="btn btn-danger" 
+                                        onclick="confirmDelete('{{ doc.id }}', '{{ doc.trail }}')"
+                                        title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> No trail documents found. Click "Add Trail Document" to create your first document.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- View Modals (outside the table) -->
+{% for doc in documents %}
+<div class="modal fade" id="viewModal{{ doc.id }}" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-earmark-text"></i> Trail Document Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Header Info -->
+                <div class="alert alert-info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><strong>{{ doc.trail }}</strong> - {{ doc.document_name }}</h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="tmf-badge">🔑 {{ doc.tmf_vault_id }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Basic Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <th width="40%">Trail ID:</th>
+                                        <td><span class="badge bg-info">{{ doc.trail }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Category:</th>
+                                        <td>
+                                            {% if doc.category == 'Build' %}
+                                                <span class="category-badge category-build">🏗️ Build</span>
+                                            {% else %}
+                                                <span class="category-badge category-cr">🔄 Change Request</span>
+                                            {% endif %}
+                                            {% if doc.cr_number %}
+                                            <br><small class="text-muted">CR: {{ doc.cr_number }}</small>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Test Engineer 1:</th>
+                                        <td><strong>{{ doc.te1 }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Test Engineer 2:</th>
+                                        <td><strong>{{ doc.te2 }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Document Name:</th>
+                                        <td><strong>{{ doc.document_name }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>TE Document:</th>
+                                        <td>
+                                            {% if doc.te_document == 'Yes' %}
+                                                <span class="badge bg-success">✅ Yes</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">📄 No</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="bi bi-file-text"></i> Document Details</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <th width="40%">UAT Round:</th>
+                                        <td><span class="badge bg-primary">{{ doc.uat_round }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>TMF/Vault ID:</th>
+                                        <td><span class="tmf-badge">{{ doc.tmf_vault_id }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Go Live Date:</th>
+                                        <td><strong>{{ doc.go_live_date }}</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="bi bi-calendar-check"></i> Approval Dates</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm table-borderless">
+                                    {% if doc.te_document == 'Yes' %}
+                                    <tr>
+                                        <th width="40%">TE1 Approval:</th>
+                                        <td>
+                                            {% if doc.te1_approval_date %}
+                                                <span class="badge bg-success">{{ doc.te1_approval_date }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Not Available</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>TE2 Approval:</th>
+                                        <td>
+                                            {% if doc.te2_approval_date %}
+                                                <span class="badge bg-success">{{ doc.te2_approval_date }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Not Available</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <th width="40%">CTDM Approval:</th>
+                                        <td>
+                                            {% if doc.ctdm_approval_date %}
+                                                <span class="badge bg-success">{{ doc.ctdm_approval_date }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Not Available</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer Info -->
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="bi bi-person-circle"></i> <strong>Created by:</strong> {{ doc.created_by }}<br>
+                                    <i class="bi bi-clock"></i> <strong>Created at:</strong> {{ doc.created_at }}
+                                </small>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                {% if doc.updated_at %}
+                                <small class="text-muted">
+                                    <i class="bi bi-pencil-square"></i> <strong>Last updated:</strong> {{ doc.updated_at }}<br>
+                                    <i class="bi bi-person"></i> <strong>Updated by:</strong> {{ doc.updated_by }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+                {% if user.role in ['superuser', 'admin', 'manager'] or doc.created_by == user.username %}
+                <a href="{{ url_for('audit.edit_trail_document', document_id=doc.id) }}" 
+                   class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Edit Document
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize DataTable
+$(document).ready(function() {
+    var table = $('#documentsTable').DataTable({
+        "pageLength": 25,
+        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        "order": [[0, "asc"]],
+        "scrollX": true,
+        "columnDefs": [
+            { "orderable": false, "targets": -1 } // Disable sorting on Actions column
+        ],
+        "language": {
+            "search": "Search records:",
+            "lengthMenu": "Show _MENU_ entries",
+            "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+            "infoEmpty": "Showing 0 to 0 of 0 entries",
+            "infoFiltered": "(filtered from _MAX_ total entries)",
+            "paginate": {
+                "first": "First",
+                "last": "Last",
+                "next": "Next",
+                "previous": "Previous"
+            }
+        }
+    });
+    
+    // Toggle table button
+    $('#toggleTableBtn').on('click', function() {
+        $('.table-responsive').toggleClass('table-responsive');
+        table.columns.adjust().draw();
+    });
+    
+    // Custom filters
+    $('#filterTrail, #filterCategory, #filterTEDoc, #filterUatRound').on('change', function() {
+        applyCustomFilters();
+    });
+    
+    function applyCustomFilters() {
+        var trail = $('#filterTrail').val();
+        var category = $('#filterCategory').val();
+        var teDoc = $('#filterTEDoc').val();
+        var uatRound = $('#filterUatRound').val();
+        
+        $.fn.dataTable.ext.search.push(
+            function(settings, data, dataIndex) {
+                var trailMatch = !trail || data[0].includes(trail);
+                var categoryMatch = !category || data[1].includes(category);
+                var teDocMatch = !teDoc || data[5].includes(teDoc);
+                var uatMatch = !uatRound || data[6].includes(uatRound);
+                
+                return trailMatch && categoryMatch && teDocMatch && uatMatch;
+            }
+        );
+        
+        table.draw();
+        $.fn.dataTable.ext.search.pop();
+    }
+});
+
+function clearFilters() {
+    $('#filterTrail, #filterCategory, #filterTEDoc, #filterUatRound').val('');
+    $('#documentsTable').DataTable().search('').draw();
+}
+
+function confirmDelete(docId, trail) {
+    if (confirm(`Are you sure you want to delete trail document for "${trail}"?\n\nThis action cannot be undone.`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/audit/trail-documents/delete/${docId}`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

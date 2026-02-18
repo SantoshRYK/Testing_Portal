@@ -1,0 +1,119 @@
+<div class="pending-card">
+    <h4><i class="bi bi-gear"></i> Manage User Roles</h4>
+    <hr>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <label class="form-label"><strong>Select User:</strong></label>
+            <select class="form-select" id="selectedUser" onchange="showUserDetails()">
+                <option value="">-- Select a user --</option>
+                {% for username, details in all_users.items() %}
+                    {% if username != 'superuser' and username != session.get('user', {}).get('username') %}
+                    <option value="{{ username }}" 
+                            data-role="{{ details.role }}" 
+                            data-email="{{ details.email }}"
+                            data-reviewer="{{ details.is_audit_reviewer }}">
+                        {{ username }} ({{ details.role|upper }})
+                    </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <div id="userDetails" style="display: none;" class="mt-4">
+        <div class="card">
+            <div class="card-body">
+                <h5>User Details</h5>
+                <p><strong>Username:</strong> <span id="detailUsername"></span></p>
+                <p><strong>Email:</strong> <span id="detailEmail"></span></p>
+                <p><strong>Current Role:</strong> <span id="detailRole" class="badge bg-secondary"></span></p>
+                <p id="detailReviewer" style="display: none;"><strong>Audit Reviewer:</strong> <span class="badge bg-success">✅ Yes</span></p>
+                
+                <hr>
+                
+                <form method="POST" id="updateRoleForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label"><strong>Change Role To:</strong></label>
+                            <select class="form-select" name="new_role" id="newRole" onchange="showRoleWarning()">
+                                <option value="user">👤 User</option>
+                                <option value="admin">🔧 Admin</option>
+                                <option value="manager">👨‍💼 Manager</option>
+                                <option value="cdp">📊 CDP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-arrow-repeat"></i> Update Role
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="roleWarning" class="alert alert-warning mt-3" style="display: none;">
+                        <!-- Dynamic warning will be shown here -->
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showUserDetails() {
+    const select = document.getElementById('selectedUser');
+    const option = select.options[select.selectedIndex];
+    
+    if (!option.value) {
+        document.getElementById('userDetails').style.display = 'none';
+        return;
+    }
+    
+    const username = option.value;
+    const role = option.getAttribute('data-role');
+    const email = option.getAttribute('data-email');
+    const reviewer = option.getAttribute('data-reviewer') === 'true';
+    
+    document.getElementById('detailUsername').textContent = username;
+    document.getElementById('detailEmail').textContent = email;
+    document.getElementById('detailRole').textContent = role.toUpperCase();
+    
+    if (reviewer) {
+        document.getElementById('detailReviewer').style.display = 'block';
+    } else {
+        document.getElementById('detailReviewer').style.display = 'none';
+    }
+    
+    // Set form action
+    document.getElementById('updateRoleForm').action = `/admin/update-role/${username}`;
+    
+    // Set current role in dropdown
+    document.getElementById('newRole').value = role;
+    
+    document.getElementById('userDetails').style.display = 'block';
+    
+    showRoleWarning();
+}
+
+function showRoleWarning() {
+    const select = document.getElementById('selectedUser');
+    const option = select.options[select.selectedIndex];
+    
+    if (!option.value) return;
+    
+    const currentRole = option.getAttribute('data-role');
+    const newRole = document.getElementById('newRole').value;
+    const warning = document.getElementById('roleWarning');
+    
+    if (newRole === 'cdp' && currentRole !== 'cdp') {
+        warning.innerHTML = '⚠️ <strong>Changing to CDP:</strong> This user will lose access to all modules except Change Request Tracker';
+        warning.style.display = 'block';
+    } else if (newRole !== 'cdp' && currentRole === 'cdp') {
+        warning.innerHTML = 'ℹ️ <strong>Changing from CDP:</strong> This user will gain access to other modules';
+        warning.className = 'alert alert-info mt-3';
+        warning.style.display = 'block';
+    } else {
+        warning.style.display = 'none';
+    }
+}
+</script>

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - TestingHub Portal{% endblock %}
+
+{% block content %}
+<style>
+    .admin-hero {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border-radius: 15px;
+        padding: 3rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .admin-hero h1 {
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Hero Section -->
+    <div class="admin-hero">
+        <h1><i class="bi bi-shield-check"></i> Admin Dashboard</h1>
+        <p class="lead mb-0">View users and system statistics</p>
+        <p class="mb-0"><small>Logged in as: {{ user.username }}</small></p>
+    </div>
+    
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Admin users can view users and data but cannot create or delete users
+    </div>
+    
+    <!-- Statistics -->
+    <div class="stats-card">
+        <h4 class="text-center mb-4"><i class="bi bi-graph-up"></i> User Statistics</h4>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.by_role.user or 0 }}</div>
+                    <div class="stat-label">Regular Users</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.by_role.admin or 0 }}</div>
+                    <div class="stat-label">Admins</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.audit_reviewers }}</div>
+                    <div class="stat-label">Audit Reviewers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter -->
+    <div class="stats-card">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label"><strong>Filter by Role:</strong></label>
+                <select class="form-select" onchange="window.location.href='?role=' + this.value">
+                    <option value="All" {% if role_filter == 'All' %}selected{% endif %}>All Roles</option>
+                    <option value="user" {% if role_filter == 'user' %}selected{% endif %}>User</option>
+                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="manager" {% if role_filter == 'manager' %}selected{% endif %}>Manager</option>
+                    <option value="superuser" {% if role_filter == 'superuser' %}selected{% endif %}>Superuser</option>
+                    <option value="cdp" {% if role_filter == 'cdp' %}selected{% endif %}>CDP</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Users List -->
+    <div class="stats-card">
+        <h4 class="mb-4"><i class="bi bi-people"></i> All Users ({{ all_users|length }})</h4>
+        
+        {% if all_users %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Audit Reviewer</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for username, details in all_users.items() %}
+                    <tr>
+                        <td>
+                            {% if details.role == 'superuser' %}👑
+                            {% elif details.role == 'manager' %}👨‍💼
+                            {% elif details.role == 'admin' %}🔧
+                            {% elif details.role == 'cdp' %}📊
+                            {% else %}👤{% endif %}
+                            <strong>{{ username }}</strong>
+                        </td>
+                        <td>{{ details.email or 'N/A' }}</td>
+                        <td><span class="badge bg-secondary">{{ details.role|upper }}</span></td>
+                        <td>
+                            {% if details.status == 'active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ details.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if details.is_audit_reviewer %}
+                                <span class="badge bg-warning">🔍 Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td><small>{{ details.created_at[:10] if details.created_at else 'N/A' }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-circle"></i> No users found.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

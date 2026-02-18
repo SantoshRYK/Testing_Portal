@@ -1,0 +1,18 @@
+{
+    "timestamp": "2026-02-13_15-55-09",
+    "type": "automatic",
+    "created_by": "system",
+    "files": [
+        "users.json",
+        "allocations.json",
+        "uat_records.json",
+        "audit_logs.json",
+        "trail_documents.json",
+        "change_requests.json",
+        "pending_users.json",
+        "password_reset_requests.json",
+        "email_config.json"
+    ],
+    "file_count": 9,
+    "backup_path": "C:\\Santosh\\TE_Local - Copy\\backups\\2026-02-13_15-55-09_automatic"
+}

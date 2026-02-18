@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Change Requests - Test Engineer Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active">Change Requests</li>
+            </ol>
+        </nav>
+        
+        <h2 class="mb-4"><i class="bi bi-arrow-repeat"></i> Change Request Tracker</h2>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card text-white bg-secondary h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-list-ul" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">View All</h5>
+                <p class="card-text">Browse change requests</p>
+                <a href="{{ url_for('change_request.list_view') }}" class="btn btn-light">View List</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-plus-circle" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">Create New</h5>
+                <p class="card-text">Submit change request</p>
+                <a href="#" class="btn btn-light">Create</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">
+    <i class="bi bi-info-circle"></i> Change Request module placeholder - Full implementation coming soon.
+</div>
+{% endblock %}

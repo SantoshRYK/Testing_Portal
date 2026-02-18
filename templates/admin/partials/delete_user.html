@@ -1,0 +1,100 @@
+<div class="pending-card">
+    <h4><i class="bi bi-trash"></i> Delete User</h4>
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i> <strong>Warning:</strong> This action cannot be undone!
+    </div>
+    <hr>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <label class="form-label"><strong>Select User to Delete:</strong></label>
+            <select class="form-select" id="deleteUser" onchange="showDeleteDetails()">
+                <option value="">-- Select a user --</option>
+                {% for username, details in all_users.items() %}
+                    {% if username != 'superuser' and username != session.get('user', {}).get('username') %}
+                    <option value="{{ username }}" 
+                            data-role="{{ details.role }}" 
+                            data-email="{{ details.email }}"
+                            data-reviewer="{{ details.is_audit_reviewer }}">
+                        {{ username }} ({{ details.role|upper }})
+                    </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <div id="deleteDetails" style="display: none;" class="mt-4">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Confirm User Deletion</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> <span id="deleteUsername"></span></p>
+                <p><strong>Email:</strong> <span id="deleteEmail"></span></p>
+                <p><strong>Role:</strong> <span id="deleteRole" class="badge bg-secondary"></span></p>
+                <p id="deleteReviewer" style="display: none;">
+                    <strong>Audit Reviewer:</strong> <span class="badge bg-warning">⚠️ This user is an Audit Reviewer!</span>
+                </p>
+                
+                <hr>
+                
+                <div class="alert alert-danger">
+                    <strong>⚠️ Are you absolutely sure?</strong>
+                    <p class="mb-0">This will permanently delete the user and cannot be undone.</p>
+                </div>
+                
+                <form method="POST" id="deleteForm" onsubmit="return confirmDelete()">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirm Delete User
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelDelete()">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDeleteDetails() {
+    const select = document.getElementById('deleteUser');
+    const option = select.options[select.selectedIndex];
+    
+    if (!option.value) {
+        document.getElementById('deleteDetails').style.display = 'none';
+        return;
+    }
+    
+    const username = option.value;
+    const role = option.getAttribute('data-role');
+    const email = option.getAttribute('data-email');
+    const reviewer = option.getAttribute('data-reviewer') === 'true';
+    
+    document.getElementById('deleteUsername').textContent = username;
+    document.getElementById('deleteEmail').textContent = email;
+    document.getElementById('deleteRole').textContent = role.toUpperCase();
+    
+    if (reviewer) {
+        document.getElementById('deleteReviewer').style.display = 'block';
+    } else {
+        document.getElementById('deleteReviewer').style.display = 'none';
+    }
+    
+    // Set form action
+    document.getElementById('deleteForm').action = `/admin/delete-user/${username}`;
+    
+    document.getElementById('deleteDetails').style.display = 'block';
+}
+
+function confirmDelete() {
+    const username = document.getElementById('deleteUsername').textContent;
+    return confirm(`Are you absolutely sure you want to delete user "${username}"?\n\nThis action CANNOT be undone!`);
+}
+
+function cancelDelete() {
+    document.getElementById('deleteUser').value = '';
+    document.getElementById('deleteDetails').style.display = 'none';
+}
+</script>

@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}UAT Records - TestingHub Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-list text-primary"></i> UAT Records
+                    </h2>
+                    <p class="text-muted mb-0">View and manage User Acceptance Testing records</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('uat.main') }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    {% if user.role != 'manager' %}
+                    <a href="{{ url_for('uat.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> New Record
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <h3 class="text-primary mb-0">{{ stats.total }}</h3>
+                    <p class="text-muted small mb-0">Total Records</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h3 class="text-success mb-0">{{ stats.completed }}</h3>
+                    <p class="text-muted small mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <h3 class="text-info mb-0">{{ stats.in_progress }}</h3>
+                    <p class="text-muted small mb-0">In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <h3 class="text-warning mb-0">{{ stats.passed }}</h3>
+                    <p class="text-muted small mb-0">Passed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('uat.view_list') }}" id="filterForm">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Trial ID</label>
+                        <select class="form-select" name="trial_id" onchange="document.getElementById('filterForm').submit()">
+                            <option value="All" {{ 'selected' if filters.trial_id == 'All' else '' }}>All</option>
+                            {% for trial_id in trial_ids %}
+                            <option value="{{ trial_id }}" {{ 'selected' if filters.trial_id == trial_id else '' }}>{{ trial_id }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="category" onchange="document.getElementById('filterForm').submit()">
+                            <option value="All" {{ 'selected' if filters.category == 'All' else '' }}>All</option>
+                            <option value="Build" {{ 'selected' if filters.category == 'Build' else '' }}>Build</option>
+                            <option value="Change Request" {{ 'selected' if filters.category == 'Change Request' else '' }}>Change Request</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" onchange="document.getElementById('filterForm').submit()">
+                            <option value="All" {{ 'selected' if filters.status == 'All' else '' }}>All</option>
+                            {% for status in status_options %}
+                            <option value="{{ status }}" {{ 'selected' if filters.status == status else '' }}>{{ status }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Result</label>
+                        <select class="form-select" name="result" onchange="document.getElementById('filterForm').submit()">
+                            <option value="All" {{ 'selected' if filters.result == 'All' else '' }}>All</option>
+                            {% for result in result_options %}
+                            <option value="{{ result }}" {{ 'selected' if filters.result == result else '' }}>{{ result }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <a href="{{ url_for('uat.view_list') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-undo"></i> Clear Filters
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Records List -->
+    <div class="row">
+        <div class="col-12">
+            <h5 class="mb-3">
+                Showing {{ records|length }} record(s)
+            </h5>
+
+            {% if records %}
+                {% for record in records|reverse %}
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">
+                                    {% if record.category_type == 'Build' %}
+                                    <span class="badge bg-primary">🏗️ Build</span>
+                                    {% else %}
+                                    <span class="badge bg-info">🔄 CR</span>
+                                    {% endif %}
+                                    
+                                    <strong>{{ record.trial_id }}</strong> - {{ record.uat_round }}
+                                    
+                                    {% if record.status == 'Completed' %}
+                                    <span class="badge bg-success">✅ {{ record.status }}</span>
+                                    {% elif record.status == 'In Progress' %}
+                                    <span class="badge bg-warning">🔄 {{ record.status }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ record.status }}</span>
+                                    {% endif %}
+                                    
+                                    {% if record.result == 'Pass' %}
+                                    <span class="badge bg-success">✅ {{ record.result }}</span>
+                                    {% elif record.result == 'Fail' %}
+                                    <span class="badge bg-danger">❌ {{ record.result }}</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ record.result }}</span>
+                                    {% endif %}
+                                </h6>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('uat.view', record_id=record.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Category:</strong> {{ record.category }}</p>
+                                <p class="mb-1"><strong>Planned:</strong> {{ record.planned_start_date }} to {{ record.planned_end_date }}</p>
+                                <p class="mb-1"><strong>Actual:</strong> 
+                                    {{ record.actual_start_date or '⏳ Not Started' }} to 
+                                    {{ record.actual_end_date or '⏳ Not Completed' }}
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <p class="mb-1 small text-muted"><strong>Created by:</strong> {{ record.created_by }}</p>
+                                <p class="mb-1 small text-muted"><strong>Created:</strong> {{ record.created_at }}</p>
+                                {% if record.date_difference_reason %}
+                                <p class="mb-0"><span class="badge bg-warning"><i class="fas fa-exclamation-triangle"></i> Date Diff</span></p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <h5>No UAT Records Found</h5>
+                    <p class="mb-0">
+                        {% if user.role != 'manager' %}
+                        <a href="{{ url_for('uat.create') }}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Create Your First Record
+                        </a>
+                        {% else %}
+                        No records available to display.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}UAT Status - TestingHub Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-check-circle text-success"></i> UAT Status
+                    </h2>
+                    <p class="text-muted mb-0">User Acceptance Testing Management</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('home.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4" id="uatTabs" role="tablist">
+        {% if show_create %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="add-tab" data-bs-toggle="tab" data-bs-target="#add" type="button" role="tab">
+                <i class="fas fa-plus-circle"></i> Add UAT Record
+            </button>
+        </li>
+        {% endif %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if not show_create %}active{% endif %}" id="view-tab" data-bs-toggle="tab" data-bs-target="#view" type="button" role="tab">
+                <i class="fas fa-list"></i> View UAT Records
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab">
+                <i class="fas fa-chart-line"></i> UAT Dashboard
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tabs Content -->
+    <div class="tab-content" id="uatTabsContent">
+        {% if show_create %}
+        <!-- Add UAT Tab -->
+        <div class="tab-pane fade show active" id="add" role="tabpanel">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> Use the "Add UAT Record" page to create new UAT records. 
+                <a href="{{ url_for('uat.create') }}" class="alert-link">Click here to add new record</a>
+            </div>
+            <div class="text-center py-5">
+                <a href="{{ url_for('uat.create') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus-circle"></i> Create New UAT Record
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- View UAT Tab -->
+        <div class="tab-pane fade {% if not show_create %}show active{% endif %}" id="view" role="tabpanel">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>View Records:</strong> See all your UAT records. 
+                <a href="{{ url_for('uat.view_list') }}" class="alert-link">Go to full list view</a>
+            </div>
+            <div class="text-center py-5">
+                <a href="{{ url_for('uat.view_list') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-list"></i> View All UAT Records
+                </a>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div class="tab-pane fade" id="dashboard" role="tabpanel">
+            <div class="alert alert-info">
+                <i class="fas fa-chart-line"></i>
+                <strong>Dashboard:</strong> View statistics and analytics. 
+                <a href="{{ url_for('uat.dashboard') }}" class="alert-link">Go to dashboard</a>
+            </div>
+            <div class="text-center py-5">
+                <a href="{{ url_for('uat.dashboard') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-chart-line"></i> View UAT Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Card -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> UAT Module Features</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center p-3">
+                                <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                                <h6>Create Records</h6>
+                                <p class="small text-muted">Add new UAT test records with detailed information</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3">
+                                <i class="fas fa-list fa-3x text-success mb-3"></i>
+                                <h6>View & Filter</h6>
+                                <p class="small text-muted">Browse and filter UAT records by various criteria</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3">
+                                <i class="fas fa-envelope fa-3x text-info mb-3"></i>
+                                <h6>Email Notifications</h6>
+                                <p class="small text-muted">Send automatic email notifications for UAT updates</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3">
+                                <i class="fas fa-chart-line fa-3x text-warning mb-3"></i>
+                                <h6>Analytics</h6>
+                                <p class="small text-muted">View comprehensive statistics and reports</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

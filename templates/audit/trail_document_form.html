@@ -1,0 +1,505 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if action == 'create' %}Add Trail Document{% else %}Edit Trail Document{% endif %} - TestingHub Portal
+{% endblock %}
+
+{% block content %}
+<style>
+    .form-hero {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 15px;
+        padding: 2.5rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .form-hero h1 {
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .form-section {
+        border-left: 4px solid #6366f1;
+        padding-left: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .form-section h5 {
+        color: #6366f1;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: #ef4444;
+    }
+    
+    .duplicate-alert {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-left: 5px solid #dc2626;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+    
+    .available-alert {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        border-left: 5px solid #059669;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+    
+    .form-check-label {
+        font-weight: 500;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        font-weight: 700;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+        color: white;
+    }
+</style>
+
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="form-hero">
+        <h1>
+            <i class="bi bi-file-earmark-plus"></i>
+            {% if action == 'create' %}
+                Add New Trail Document
+            {% else %}
+                Edit Trail Document
+            {% endif %}
+        </h1>
+        <p class="lead mb-0">Complete all required fields to save the document</p>
+    </div>
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('home.index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('audit.trail_documents') }}">Trail Audit</a></li>
+            <li class="breadcrumb-item active">
+                {% if action == 'create' %}Add New{% else %}Edit{% endif %}
+            </li>
+        </ol>
+    </nav>
+    
+    <!-- Form -->
+    <form method="POST" id="trailDocumentForm">
+        
+        <div class="form-card">
+            <!-- Basic Information Section -->
+            <div class="form-section">
+                <h5><i class="bi bi-info-circle"></i> Basic Information</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="trail" class="form-label required-field">Trail ID</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="trail" 
+                               name="trail" 
+                               value="{{ document.trail if document else (form_data.trail if form_data else '') }}"
+                               placeholder="e.g., TRL-2024-001"
+                               required>
+                        <small class="form-text text-muted">Enter the unique trail identifier</small>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="category" class="form-label required-field">Category</label>
+                        <select class="form-select" id="category" name="category" required onchange="toggleCRNumber()">
+                            <option value="Build" 
+                                {% if (document and document.category == 'Build') or (form_data and form_data.category == 'Build') or (not document and not form_data) %}
+                                selected
+                                {% endif %}>
+                                🏗️ Build
+                            </option>
+                            <option value="Change Request" 
+                                {% if (document and document.category == 'Change Request') or (form_data and form_data.category == 'Change Request') %}
+                                selected
+                                {% endif %}>
+                                🔄 Change Request
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6" id="crNumberDiv" style="display: none;">
+                        <label for="cr_number" class="form-label required-field">CR Number</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="cr_number" 
+                               name="cr_number" 
+                               value="{{ document.cr_number if document else (form_data.cr_number if form_data else '') }}"
+                               placeholder="e.g., CR001, CR-2024-001">
+                        <small class="form-text text-muted">Required when Category is Change Request</small>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="te1" class="form-label required-field">Test Engineer 1 (TE1)</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="te1" 
+                               name="te1" 
+                               value="{{ document.te1 if document else (form_data.te1 if form_data else '') }}"
+                               placeholder="Enter TE1 name"
+                               required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="te2" class="form-label required-field">Test Engineer 2 (TE2)</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="te2" 
+                               name="te2" 
+                               value="{{ document.te2 if document else (form_data.te2 if form_data else '') }}"
+                               placeholder="Enter TE2 name"
+                               required>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label for="document_name" class="form-label required-field">Document Name</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="document_name" 
+                               name="document_name" 
+                               value="{{ document.document_name if document else (form_data.document_name if form_data else '') }}"
+                               placeholder="e.g., Test Plan v1.0, UAT Results Report"
+                               required>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Document Details Section -->
+            <div class="form-section">
+                <h5><i class="bi bi-file-text"></i> Document Details</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label required-field">TE Document?</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       name="te_document" 
+                                       id="teDocYes" 
+                                       value="Yes"
+                                       {% if (document and document.te_document == 'Yes') or (form_data and form_data.te_document == 'Yes') %}
+                                       checked
+                                       {% endif %}
+                                       onchange="toggleApprovalFields()"
+                                       required>
+                                <label class="form-check-label" for="teDocYes">
+                                    ✅ Yes
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       name="te_document" 
+                                       id="teDocNo" 
+                                       value="No"
+                                       {% if (document and document.te_document == 'No') or (form_data and form_data.te_document == 'No') or (not document and not form_data) %}
+                                       checked
+                                       {% endif %}
+                                       onchange="toggleApprovalFields()"
+                                       required>
+                                <label class="form-check-label" for="teDocNo">
+                                    📄 No
+                                </label>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Is this a Test Engineer document?</small>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="uat_round" class="form-label required-field">UAT Round</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="uat_round" 
+                               name="uat_round" 
+                               value="{{ document.uat_round if document else (form_data.uat_round if form_data else '') }}"
+                               placeholder="e.g., Round 1, UAT Phase 1"
+                               required>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label for="tmf_vault_id" class="form-label required-field">
+                            🔑 TMF/Vault ID
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="tmf_vault_id" 
+                               name="tmf_vault_id" 
+                               value="{{ document.tmf_vault_id if document else (form_data.tmf_vault_id if form_data else '') }}"
+                               placeholder="e.g., TMF-123456"
+                               onblur="checkDuplicate()"
+                               required>
+                        <small class="form-text text-warning">
+                            ⚠️ Must be unique - duplicates will be rejected
+                        </small>
+                        <div id="duplicateAlert" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Approval Dates Section -->
+            <div class="form-section">
+                <h5><i class="bi bi-calendar-check"></i> Approval Dates</h5>
+                
+                <div id="teApprovalSection" style="display: none;">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> TE Document = Yes → TE1 & TE2 Approval dates required
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="te1_approval_date" class="form-label required-field">TE1 Approval Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="te1_approval_date" 
+                                   name="te1_approval_date" 
+                                   value="{{ document.te1_approval_date if document else (form_data.te1_approval_date if form_data else '') }}">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="te2_approval_date" class="form-label required-field">TE2 Approval Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="te2_approval_date" 
+                                   name="te2_approval_date" 
+                                   value="{{ document.te2_approval_date if document else (form_data.te2_approval_date if form_data else '') }}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="ctdmApprovalSection" style="display: none;">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> TE Document = No → CTDM Approval date required
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="ctdm_approval_date" class="form-label required-field">CTDM Approval Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="ctdm_approval_date" 
+                                   name="ctdm_approval_date" 
+                                   value="{{ document.ctdm_approval_date if document else (form_data.ctdm_approval_date if form_data else '') }}">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label for="go_live_date" class="form-label required-field">Go Live Date</label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="go_live_date" 
+                               name="go_live_date" 
+                               value="{{ document.go_live_date if document else (form_data.go_live_date if form_data else '') }}"
+                               required>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-submit w-100" id="submitBtn">
+                        <i class="bi bi-save"></i> 
+                        {% if action == 'create' %}
+                            Save Trail Document
+                        {% else %}
+                            Update Trail Document
+                        {% endif %}
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <a href="{{ url_for('audit.trail_documents') }}" class="btn btn-secondary w-100">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle CR Number field based on category
+function toggleCRNumber() {
+    const category = document.getElementById('category').value;
+    const crNumberDiv = document.getElementById('crNumberDiv');
+    const crNumberInput = document.getElementById('cr_number');
+    
+    if (category === 'Change Request') {
+        crNumberDiv.style.display = 'block';
+        crNumberInput.required = true;
+    } else {
+        crNumberDiv.style.display = 'none';
+        crNumberInput.required = false;
+        crNumberInput.value = '';
+    }
+}
+
+// Toggle approval fields based on TE Document selection
+function toggleApprovalFields() {
+    const teDocYes = document.getElementById('teDocYes').checked;
+    const teApprovalSection = document.getElementById('teApprovalSection');
+    const ctdmApprovalSection = document.getElementById('ctdmApprovalSection');
+    
+    const te1Approval = document.getElementById('te1_approval_date');
+    const te2Approval = document.getElementById('te2_approval_date');
+    const ctdmApproval = document.getElementById('ctdm_approval_date');
+    
+    if (teDocYes) {
+        teApprovalSection.style.display = 'block';
+        ctdmApprovalSection.style.display = 'none';
+        te1Approval.required = true;
+        te2Approval.required = true;
+        ctdmApproval.required = false;
+        ctdmApproval.value = '';
+    } else {
+        teApprovalSection.style.display = 'none';
+        ctdmApprovalSection.style.display = 'block';
+        te1Approval.required = false;
+        te2Approval.required = false;
+        ctdmApproval.required = true;
+        te1Approval.value = '';
+        te2Approval.value = '';
+    }
+}
+
+// Check for duplicate TMF/Vault ID
+async function checkDuplicate() {
+    const tmfVaultId = document.getElementById('tmf_vault_id').value.trim();
+    const duplicateAlert = document.getElementById('duplicateAlert');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (!tmfVaultId) {
+        duplicateAlert.style.display = 'none';
+        submitBtn.disabled = false;
+        return;
+    }
+    
+    const excludeId = '{{ document.id if document else "" }}';
+    
+    try {
+        const response = await fetch('/audit/trail-documents/check-duplicate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                tmf_vault_id: tmfVaultId,
+                exclude_id: excludeId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.is_duplicate) {
+            const info = data.duplicate_info;
+            duplicateAlert.className = 'duplicate-alert mt-2';
+            duplicateAlert.innerHTML = `
+                <strong>❌ Duplicate TMF/Vault ID Found!</strong>
+                <p class="mb-1">This TMF/Vault ID <strong>${tmfVaultId}</strong> is already in use by:</p>
+                <ul class="mb-0">
+                    <li><strong>Trail:</strong> ${info.trail}</li>
+                    <li><strong>Document:</strong> ${info.document_name}</li>
+                    <li><strong>Category:</strong> ${info.category}</li>
+                    <li><strong>UAT Round:</strong> ${info.uat_round}</li>
+                    <li><strong>Created By:</strong> ${info.created_by}</li>
+                </ul>
+                <p class="mb-0 mt-2"><strong>⚠️ Please use a unique TMF/Vault ID</strong></p>
+            `;
+            duplicateAlert.style.display = 'block';
+            submitBtn.disabled = true;
+        } else {
+            duplicateAlert.className = 'available-alert mt-2';
+            duplicateAlert.innerHTML = '<strong>✅ TMF/Vault ID is available</strong>';
+            duplicateAlert.style.display = 'block';
+            submitBtn.disabled = false;
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                duplicateAlert.style.display = 'none';
+            }, 3000);
+        }
+    } catch (error) {
+        console.error('Error checking duplicate:', error);
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleCRNumber();
+    toggleApprovalFields();
+});
+
+// Form validation before submit
+document.getElementById('trailDocumentForm').addEventListener('submit', function(e) {
+    const tmfVaultId = document.getElementById('tmf_vault_id').value.trim();
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (submitBtn.disabled) {
+        e.preventDefault();
+        alert('Cannot submit: TMF/Vault ID already exists. Please use a unique ID.');
+        return false;
+    }
+    
+    // Additional validation
+    const teDocYes = document.getElementById('teDocYes').checked;
+    
+    if (teDocYes) {
+        const te1Approval = document.getElementById('te1_approval_date').value;
+        const te2Approval = document.getElementById('te2_approval_date').value;
+        
+        if (!te1Approval || !te2Approval) {
+            e.preventDefault();
+            alert('TE1 and TE2 Approval dates are required when TE Document = Yes');
+            return false;
+        }
+    } else {
+        const ctdmApproval = document.getElementById('ctdm_approval_date').value;
+        
+        if (!ctdmApproval) {
+            e.preventDefault();
+            alert('CTDM Approval date is required when TE Document = No');
+            return false;
+        }
+    }
+    
+    const category = document.getElementById('category').value;
+    if (category === 'Change Request') {
+        const crNumber = document.getElementById('cr_number').value.trim();
+        if (!crNumber) {
+            e.preventDefault();
+            alert('CR Number is required when Category is Change Request');
+            return false;
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+<div class="pending-card">
+    <h4><i class="bi bi-eye"></i> Audit Reviewer Access Requests</h4>
+    <p class="text-muted">Users requesting read-only access to all audit trail documents</p>
+    <hr>
+    
+    {% if pending_reviewers %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> {{ pending_reviewers|length }} audit reviewer request(s) waiting for approval
+        </div>
+        
+        {% for reviewer in pending_reviewers %}
+        <div class="user-expander">
+            <div class="user-expander-header">
+                <div>
+                    <strong>🔍 {{ reviewer.username }}</strong>
+                    <span class="badge bg-secondary">{{ reviewer.email }}</span>
+                </div>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="user-expander-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p><strong>Username:</strong> {{ reviewer.username }}</p>
+                        <p><strong>Email:</strong> {{ reviewer.email }}</p>
+                        <p><strong>Current Role:</strong> {{ reviewer.role|upper }}</p>
+                        <p><strong>User Since:</strong> {{ reviewer.created_at or 'N/A' }}</p>
+                        
+                        <hr>
+                        
+                        <h6>📝 Justification for Audit Reviewer Access:</h6>
+                        <div class="alert alert-info">
+                            {{ reviewer.audit_reviewer_justification or 'No justification provided' }}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <h6>Actions</h6>
+                        <form method="POST">
+                            <div class="d-grid gap-2">
+                                <button type="submit" formaction="{{ url_for('admin.approve_reviewer', username=reviewer.username) }}" 
+                                        class="btn btn-success">
+                                    <i class="bi bi-check-circle"></i> Grant Access
+                                </button>
+                                <button type="submit" formaction="{{ url_for('admin.reject_reviewer', username=reviewer.username) }}" 
+                                        class="btn btn-danger">
+                                    <i class="bi bi-x-circle"></i> Reject Request
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle"></i> No pending audit reviewer requests
+        </div>
+    {% endif %}
+    
+    <hr class="my-4">
+    
+    <!-- Current Audit Reviewers -->
+    <h5><i class="bi bi-people"></i> Current Audit Reviewers</h5>
+    
+    {% if audit_reviewers %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> {{ audit_reviewers|length }} active audit reviewer(s)
+        </div>
+        
+        {% for reviewer in audit_reviewers %}
+        <div class="user-expander">
+            <div class="user-expander-header">
+                <div>
+                    <strong>✅ {{ reviewer.username }}</strong>
+                    <span class="badge bg-success">{{ reviewer.email }}</span>
+                </div>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="user-expander-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p><strong>Username:</strong> {{ reviewer.username }}</p>
+                        <p><strong>Email:</strong> {{ reviewer.email }}</p>
+                        <p><strong>Role:</strong> {{ reviewer.role|upper }}</p>
+                        <p><strong>Approved By:</strong> {{ reviewer.approved_by or 'N/A' }}</p>
+                        <p><strong>Approved At:</strong> {{ reviewer.approved_at or 'N/A' }}</p>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <h6>Actions</h6>
+                        <form method="POST">
+                            <button type="submit" formaction="{{ url_for('admin.revoke_reviewer', username=reviewer.username) }}" 
+                                    class="btn btn-warning w-100"
+                                    onclick="return confirm('Revoke audit reviewer access from {{ reviewer.username }}?')">
+                                <i class="bi bi-x-circle"></i> Revoke Access
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-secondary">
+            <i class="bi bi-info-circle"></i> No active audit reviewers
+        </div>
+    {% endif %}
+</div>

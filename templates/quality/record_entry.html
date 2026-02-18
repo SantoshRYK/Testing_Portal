@@ -1,0 +1,534 @@
+{% extends "base.html" %}
+{% block title %}Record Entry - Quality - TestingHub Portal{% endblock %}
+{% block content %}
+<style>
+    .wizard-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3);
+        margin-bottom: 2rem;
+    }
+    
+    .trial-info-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 5px solid #667eea;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .record-form-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .dd-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+    
+    .record-table-card {
+        background: white;
+        border-radius: 15px;
+        border: 2px solid #28a745;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+    
+    .step-item {
+        flex: 1;
+        text-align: center;
+        position: relative;
+    }
+    
+    .step-item::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #28a745;
+        z-index: -1;
+    }
+    
+    .step-item:first-child::before {
+        left: 50%;
+    }
+    
+    .step-item:last-child::before {
+        right: 50%;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #28a745;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .step-item.completed .step-circle {
+        background: #28a745;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Wizard Header -->
+    <div class="wizard-header">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb bg-transparent mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('home.index') }}" class="text-white">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('quality.main') }}" class="text-white">Quality</a>
+                </li>
+                <li class="breadcrumb-item text-white active">Record Entry</li>
+            </ol>
+        </nav>
+        
+        <h2 class="mb-2">
+            <i class="bi bi-pencil-square"></i> Trial Quality Matrix - Record Entry
+        </h2>
+        <p class="lead mb-0">Step 2: Add Quality Records</p>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator mb-4">
+        <div class="step-item completed">
+            <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+            <div class="fw-bold">Trial Setup</div>
+            <small class="text-muted">Completed</small>
+        </div>
+        <div class="step-item completed">
+            <div class="step-circle">2</div>
+            <div class="fw-bold">Record Entry</div>
+            <small class="text-success">Current Step</small>
+        </div>
+    </div>
+
+    <!-- Trial Information Summary -->
+    <div class="trial-info-card">
+        <h5 class="mb-3">
+            <i class="bi bi-info-circle-fill text-primary"></i> Trial Information
+        </h5>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-tag-fill text-primary me-2" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <small class="text-muted">Trial ID</small>
+                        <div class="fw-bold">{{ trial_data.trial_id }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-layers-fill text-success me-2" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <small class="text-muted">Phase</small>
+                        <div class="fw-bold">{{ trial_data.phase }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-heart-pulse-fill text-danger me-2" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <small class="text-muted">Therapeutic Area</small>
+                        <div class="fw-bold">{{ trial_data.therapeutic_area }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-arrow-repeat text-warning me-2" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <small class="text-muted">Total Rounds</small>
+                        <div class="fw-bold">{{ trial_data.no_of_rounds }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Record Form -->
+    <div class="record-form-card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-plus-circle"></i> Add New Quality Record
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('quality.record_entry') }}" id="recordForm">
+                <input type="hidden" name="action" value="add_record">
+                
+                <!-- Basic Information -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-file-text"></i> Type of Requirement 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select form-select-lg" name="type_of_requirement" required>
+                            <option value="">-- Select --</option>
+                            <option value="Forms">Forms</option>
+                            <option value="Editchecks">Editchecks</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-arrow-repeat"></i> Trial Round 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" 
+                               class="form-control form-control-lg" 
+                               name="current_round" 
+                               min="1" 
+                               max="{{ trial_data.no_of_rounds }}" 
+                               value="1" 
+                               required>
+                        <small class="text-muted">Max: {{ trial_data.no_of_rounds }}</small>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-list-ol"></i> Total Requirements 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" 
+                               class="form-control form-control-lg" 
+                               name="total_requirements" 
+                               min="0" 
+                               value="0" 
+                               id="totalReq" 
+                               required>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-exclamation-triangle"></i> Total Failures 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" 
+                               class="form-control form-control-lg" 
+                               name="total_failures" 
+                               min="0" 
+                               value="0" 
+                               id="totalFail" 
+                               required>
+                    </div>
+                </div>
+                
+                <!-- Defect Density Display -->
+                <div class="text-center mb-4">
+                    <div class="dd-badge d-inline-block">
+                        <i class="bi bi-graph-up"></i> Defect Density: <span id="ddValue">0.00%</span>
+                    </div>
+                </div>
+                
+                <!-- Reason for Failure -->
+                <h6 class="mb-3 text-primary">
+                    <i class="bi bi-bug"></i> Reason for Failure
+                </h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label">Spec Issue</label>
+                        <input type="number" 
+                               class="form-control" 
+                               name="spec_issue" 
+                               min="0" 
+                               value="0"
+                               id="specIssue">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mock CRF Issue</label>
+                        <input type="number" 
+                               class="form-control" 
+                               name="mock_crf_issue" 
+                               min="0" 
+                               value="0"
+                               id="mockCrfIssue">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Programming Issue</label>
+                        <input type="number" 
+                               class="form-control" 
+                               name="programming_issue" 
+                               min="0" 
+                               value="0"
+                               id="progIssue">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Scripting Issue</label>
+                        <input type="number" 
+                               class="form-control" 
+                               name="scripting_issue" 
+                               min="0" 
+                               value="0"
+                               id="scriptIssue">
+                    </div>
+                </div>
+                
+                <div id="failureWarning" class="alert alert-warning d-none mb-4">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    <strong>Warning:</strong> Sum of failure reasons exceeds total failures!
+                </div>
+                
+                <!-- Additional Information -->
+                <h6 class="mb-3 text-primary">
+                    <i class="bi bi-clipboard-data"></i> Additional Information
+                </h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Documentation Issues</label>
+                        <textarea class="form-control" 
+                                  name="documentation_issues" 
+                                  rows="3" 
+                                  placeholder="Describe any documentation issues..."></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Timeline Adherence</label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="timeline_adherence" 
+                               placeholder="e.g., On Time, Delayed">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">System Deployment Delays</label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="system_deployment_delays" 
+                               placeholder="e.g., 2 days">
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-plus-circle"></i> Add Record to List
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Display Added Records -->
+    {% if wizard_records %}
+    <div class="record-table-card mb-4">
+        <div class="card-header bg-success text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-check-circle"></i> Records Ready to Save
+                </h5>
+                <span class="badge bg-white text-success">{{ wizard_records|length }} Record(s)</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Type</th>
+                            <th>Trial Round</th>
+                            <th>Req Round</th>
+                            <th>Requirements</th>
+                            <th>Failures</th>
+                            <th>Defect Density</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in wizard_records %}
+                        <tr>
+                            <td><strong>{{ loop.index }}</strong></td>
+                            <td>
+                                <span class="badge bg-primary">{{ record.type_of_requirement }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">R{{ record.current_round }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success">{{ record.type_of_requirement }} R{{ record.requirement_round }}</span>
+                            </td>
+                            <td><strong>{{ record.total_requirements }}</strong></td>
+                            <td>
+                                <span class="badge bg-danger">{{ record.total_failures }}</span>
+                            </td>
+                            <td>
+                                {% set dd = (record.total_failures / record.total_requirements * 100) if record.total_requirements > 0 else 0 %}
+                                {% if dd < 10 %}
+                                    <span class="badge bg-success">{{ "%.2f"|format(dd) }}%</span>
+                                {% elif dd < 25 %}
+                                    <span class="badge bg-warning text-dark">{{ "%.2f"|format(dd) }}%</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ "%.2f"|format(dd) }}%</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="action" value="remove_record">
+                                    <input type="hidden" name="record_index" value="{{ loop.index0 }}">
+                                    <button type="submit" 
+                                            class="btn btn-sm btn-danger" 
+                                            onclick="return confirm('Remove this record from the list?')">
+                                        <i class="bi bi-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info shadow-sm">
+        <i class="bi bi-info-circle"></i> 
+        <strong>No records added yet.</strong> Fill out the form above to add your first quality record.
+    </div>
+    {% endif %}
+
+    <!-- Navigation Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{{ url_for('quality.trial_setup') }}" class="btn btn-outline-secondary btn-lg">
+            <i class="bi bi-arrow-left"></i> Back to Trial Setup
+        </a>
+        
+        <div>
+            <a href="{{ url_for('quality.clear_wizard') }}" 
+               class="btn btn-outline-danger btn-lg me-2"
+               onclick="return confirm('This will clear all entered data. Continue?')">
+                <i class="bi bi-x-circle"></i> Cancel & Clear
+            </a>
+            
+            <form method="POST" style="display: inline;">
+                <input type="hidden" name="action" value="save_all">
+                <button type="submit" 
+                        class="btn btn-success btn-lg px-5" 
+                        {% if not wizard_records %}disabled{% endif %}
+                        onclick="return confirm('Save all {{ wizard_records|length }} record(s) to database?')">
+                    <i class="bi bi-save"></i> Save All Records ({{ wizard_records|length }})
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const totalReq = document.getElementById('totalReq');
+    const totalFail = document.getElementById('totalFail');
+    const ddValue = document.getElementById('ddValue');
+    const specIssue = document.getElementById('specIssue');
+    const mockCrfIssue = document.getElementById('mockCrfIssue');
+    const progIssue = document.getElementById('progIssue');
+    const scriptIssue = document.getElementById('scriptIssue');
+    const failureWarning = document.getElementById('failureWarning');
+    
+    // Calculate and update defect density
+    function updateDD() {
+        const req = parseInt(totalReq.value) || 0;
+        const fail = parseInt(totalFail.value) || 0;
+        
+        if (req > 0) {
+            const dd = (fail / req * 100).toFixed(2);
+            ddValue.textContent = dd + '%';
+        } else {
+            ddValue.textContent = '0.00%';
+        }
+        
+        // Validate failures don't exceed requirements
+        if (fail > req && req > 0) {
+            totalFail.classList.add('is-invalid');
+        } else {
+            totalFail.classList.remove('is-invalid');
+        }
+        
+        checkFailureReasons();
+    }
+    
+    // Check if sum of failure reasons exceeds total failures
+    function checkFailureReasons() {
+        const totalFailures = parseInt(totalFail.value) || 0;
+        const sumReasons = (parseInt(specIssue.value) || 0) +
+                          (parseInt(mockCrfIssue.value) || 0) +
+                          (parseInt(progIssue.value) || 0) +
+                          (parseInt(scriptIssue.value) || 0);
+        
+        if (sumReasons > totalFailures && totalFailures > 0) {
+            failureWarning.classList.remove('d-none');
+        } else {
+            failureWarning.classList.add('d-none');
+        }
+    }
+    
+    // Add event listeners
+    totalReq.addEventListener('input', updateDD);
+    totalFail.addEventListener('input', updateDD);
+    specIssue.addEventListener('input', checkFailureReasons);
+    mockCrfIssue.addEventListener('input', checkFailureReasons);
+    progIssue.addEventListener('input', checkFailureReasons);
+    scriptIssue.addEventListener('input', checkFailureReasons);
+    
+    // Form validation
+    document.getElementById('recordForm').addEventListener('submit', function(e) {
+        const req = parseInt(totalReq.value) || 0;
+        const fail = parseInt(totalFail.value) || 0;
+        
+        if (fail > req) {
+            e.preventDefault();
+            alert('Total Failures cannot exceed Total Requirements');
+            totalFail.focus();
+            return false;
+        }
+        
+        const sumReasons = (parseInt(specIssue.value) || 0) +
+                          (parseInt(mockCrfIssue.value) || 0) +
+                          (parseInt(progIssue.value) || 0) +
+                          (parseInt(scriptIssue.value) || 0);
+        
+        if (sumReasons > fail && fail > 0) {
+            if (!confirm('Sum of failure reasons exceeds total failures. Continue anyway?')) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

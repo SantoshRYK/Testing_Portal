@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Manager Panel - TestingHub Portal{% endblock %}
+
+{% block content %}
+<style>
+    .manager-hero {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        border-radius: 15px;
+        padding: 3rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .manager-hero h1 {
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Hero Section -->
+    <div class="manager-hero">
+        <h1><i class="bi bi-briefcase"></i> Manager Dashboard</h1>
+        <p class="lead mb-0">Team management and overview access</p>
+        <p class="mb-0"><small>Logged in as: {{ user.username }}</small></p>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="stats-card">
+        <h4 class="text-center mb-4"><i class="bi bi-graph-up"></i> Team Statistics</h4>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ team_members|length }}</div>
+                    <div class="stat-label">Team Members</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.by_role.user or 0 }}</div>
+                    <div class="stat-label">Regular Users</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.audit_reviewers }}</div>
+                    <div class="stat-label">Audit Reviewers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Team Members List -->
+    <div class="stats-card">
+        <h4 class="mb-4"><i class="bi bi-people"></i> Team Members</h4>
+        
+        {% if team_members %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Manager View - Summary and overview access only. Detailed views are restricted to Admin/Superuser roles.
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Audit Reviewer</th>
+                        <th>Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for username, details in team_members.items() %}
+                    <tr>
+                        <td><strong>{{ username }}</strong></td>
+                        <td>{{ details.email }}</td>
+                        <td><span class="badge bg-primary">{{ details.role|upper }}</span></td>
+                        <td>
+                            {% if details.status == 'active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ details.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if details.is_audit_reviewer %}
+                                <span class="badge bg-warning">🔍 Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td><small>{{ details.created_at[:10] if details.created_at else 'N/A' }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-circle"></i> No team members found.
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="stats-card">
+        <h4 class="mb-4"><i class="bi bi-lightning"></i> Quick Actions</h4>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{{ url_for('allocations.dashboard') }}" class="btn btn-primary btn-lg w-100">
+                    <i class="bi bi-calendar-check"></i> Allocation Dashboard
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('quality.dashboard') }}" class="btn btn-success btn-lg w-100">
+                    <i class="bi bi-bar-chart"></i> Quality Dashboard
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('uat.dashboard') }}" class="btn btn-info btn-lg w-100">
+                    <i class="bi bi-check-circle"></i> UAT Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

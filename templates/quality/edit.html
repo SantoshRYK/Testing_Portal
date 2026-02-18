@@ -1,0 +1,526 @@
+{% extends "base.html" %}
+{% block title %}Edit Quality Record - TestingHub Portal{% endblock %}
+{% block content %}
+<style>
+    .edit-header {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
+        margin-bottom: 2rem;
+    }
+    
+    .edit-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .section-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #667eea;
+    }
+    
+    .dd-display-edit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+        margin: 1rem 0;
+    }
+    
+    .dd-value-edit {
+        font-size: 2rem;
+        font-weight: 800;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 0.2rem rgba(245, 158, 11, 0.25);
+    }
+    
+    .therapeutic-other-input {
+        display: none;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="edit-header">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb bg-transparent mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('home.index') }}" class="text-white">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('quality.main') }}" class="text-white">Quality</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('quality.view_records') }}" class="text-white">Records</a>
+                </li>
+                <li class="breadcrumb-item text-white active">Edit {{ record.record_id }}</li>
+            </ol>
+        </nav>
+        
+        <h2 class="mb-2">
+            <i class="bi bi-pencil-square"></i> Edit Quality Record
+        </h2>
+        <p class="lead mb-0">{{ record.trial_id }} - {{ record.type_of_requirement }}</p>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="edit-card">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('quality.edit', record_id=record.record_id) }}" id="editForm">
+                
+                <!-- Trial Information Section -->
+                <div class="section-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Trial Information
+                    </h5>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-tag"></i> Trial ID 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               name="trial_id" 
+                               value="{{ record.trial_id }}" 
+                               required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-layers"></i> Phase 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select form-select-lg" name="phase" id="phase" required>
+                            {% for opt in phase_options %}
+                            <option value="{{ opt }}" 
+                                    {% if record.phase == opt or (opt == 'Other' and record.phase not in phase_options) %}selected{% endif %}>
+                                {{ opt }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4 {% if record.phase in phase_options %}d-none{% endif %}" id="phase_other_div">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-pencil"></i> Specify Phase
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="phase_other" 
+                               id="phase_other"
+                               value="{% if record.phase not in phase_options %}{{ record.phase }}{% endif %}">
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-heart-pulse"></i> Therapeutic Area 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select form-select-lg" name="therapeutic_area" id="therapeutic_area" required>
+                            {% set current_therapeutic = record.therapeutic_area %}
+                            {% set is_other = current_therapeutic and 'Others -' in current_therapeutic %}
+                            {% for area in therapeutic_areas %}
+                            <option value="{{ area }}" 
+                                    {% if (not is_other and area == current_therapeutic) or (is_other and area == 'Others') %}selected{% endif %}>
+                                {{ area }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-arrow-repeat"></i> No. of Rounds 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" 
+                               class="form-control form-control-lg" 
+                               name="no_of_rounds" 
+                               value="{{ record.no_of_rounds }}" 
+                               min="1"
+                               required>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4 therapeutic-other-input" id="therapeutic_other_div">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-pencil"></i> Specify Therapeutic Area
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="therapeutic_area_other" 
+                               id="therapeutic_area_other"
+                               value="{% if is_other %}{{ current_therapeutic.replace('Others - ', '') }}{% endif %}"
+                               placeholder="Enter therapeutic area details">
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-file-text"></i> Type of Requirement 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select form-select-lg" name="type_of_requirement" required>
+                            <option value="Forms" {% if record.type_of_requirement == 'Forms' %}selected{% endif %}>Forms</option>
+                            <option value="Editchecks" {% if record.type_of_requirement == 'Editchecks' %}selected{% endif %}>Editchecks</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-flag"></i> Trial Round 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" 
+                               class="form-control form-control-lg" 
+                               name="current_round" 
+                               value="{{ record.current_round }}" 
+                               min="1"
+                               required>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> Actual trial round number
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> 
+                    <strong>Note:</strong> Requirement Round ({{ record.type_of_requirement }} Round {{ record.requirement_round or 1 }}) is automatically calculated and cannot be edited.
+                </div>
+                
+                <!-- Quality Metrics Section -->
+                <div class="section-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart"></i> Quality Metrics
+                    </h5>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-list-ol"></i> Total Requirements 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" 
+                               class="form-control form-control-lg" 
+                               name="total_requirements" 
+                               id="totalReq" 
+                               value="{{ record.total_requirements }}" 
+                               min="0" 
+                               required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-exclamation-triangle"></i> Total Failures 
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" 
+                               class="form-control form-control-lg" 
+                               name="total_failures" 
+                               id="totalFail" 
+                               value="{{ record.total_failures }}" 
+                               min="0" 
+                               required>
+                    </div>
+                </div>
+                
+                <!-- Defect Density Display -->
+                <div class="dd-display-edit">
+                    <div class="text-white-50 mb-1">Calculated Defect Density</div>
+                    <div class="dd-value-edit" id="ddValue">0.00%</div>
+                </div>
+                
+                <!-- Failure Reasons Section -->
+                <div class="section-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bug"></i> Failure Reasons
+                    </h5>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-file-earmark-text"></i> Spec Issue
+                        </label>
+                        <input type="number" 
+                               class="form-control failure-input" 
+                               name="spec_issue" 
+                               value="{{ record.spec_issue or 0 }}" 
+                               min="0"
+                               data-field="spec">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-clipboard"></i> Mock CRF Issue
+                        </label>
+                        <input type="number" 
+                               class="form-control failure-input" 
+                               name="mock_crf_issue" 
+                               value="{{ record.mock_crf_issue or 0 }}" 
+                               min="0"
+                               data-field="mockcrf">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-code-slash"></i> Programming Issue
+                        </label>
+                        <input type="number" 
+                               class="form-control failure-input" 
+                               name="programming_issue" 
+                               value="{{ record.programming_issue or 0 }}" 
+                               min="0"
+                               data-field="programming">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-terminal"></i> Scripting Issue
+                        </label>
+                        <input type="number" 
+                               class="form-control failure-input" 
+                               name="scripting_issue" 
+                               value="{{ record.scripting_issue or 0 }}" 
+                               min="0"
+                               data-field="scripting">
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning d-none" id="failureWarning">
+                    <i class="bi bi-exclamation-circle"></i> 
+                    <strong>Warning:</strong> 
+                    Sum of failure reasons (<strong><span id="failureSum">0</span></strong>) 
+                    does not match Total Failures (<strong><span id="failureTotalDisplay">0</span></strong>)
+                </div>
+                
+                <!-- Additional Information Section -->
+                <div class="section-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-left-text"></i> Additional Information
+                    </h5>
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-file-earmark-text"></i> Documentation Issues
+                        </label>
+                        <textarea class="form-control" 
+                                  name="documentation_issues" 
+                                  rows="4"
+                                  placeholder="Describe any documentation issues...">{{ record.documentation_issues }}</textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-clock"></i> Timeline Adherence
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="timeline_adherence" 
+                               value="{{ record.timeline_adherence }}"
+                               placeholder="e.g., On Time, Delayed">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-hourglass-split"></i> System Deployment Delays
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="system_deployment_delays" 
+                               value="{{ record.system_deployment_delays }}"
+                               placeholder="e.g., 2 days">
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('quality.view_single', record_id=record.record_id) }}" 
+                       class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-warning btn-lg px-5">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+    
+    var phaseSelect = document.getElementById('phase');
+    var phaseOtherDiv = document.getElementById('phase_other_div');
+    var phaseOtherInput = document.getElementById('phase_other');
+    
+    var therapeuticSelect = document.getElementById('therapeutic_area');
+    var therapeuticOtherDiv = document.getElementById('therapeutic_other_div');
+    var therapeuticOtherInput = document.getElementById('therapeutic_area_other');
+    
+    var totalReq = document.getElementById('totalReq');
+    var totalFail = document.getElementById('totalFail');
+    var ddValue = document.getElementById('ddValue');
+    var failureInputs = document.querySelectorAll('.failure-input');
+    var failureWarning = document.getElementById('failureWarning');
+    var failureSum = document.getElementById('failureSum');
+    var failureTotalDisplay = document.getElementById('failureTotalDisplay');
+    var form = document.getElementById('editForm');
+    
+    // Phase "Other" toggle
+    if (phaseSelect && phaseOtherDiv) {
+        phaseSelect.addEventListener('change', function() {
+            if (this.value === 'Other') {
+                phaseOtherDiv.classList.remove('d-none');
+                if (phaseOtherInput) phaseOtherInput.required = true;
+            } else {
+                phaseOtherDiv.classList.add('d-none');
+                if (phaseOtherInput) {
+                    phaseOtherInput.required = false;
+                    phaseOtherInput.value = '';
+                }
+            }
+        });
+    }
+    
+    // Therapeutic Area "Others" toggle
+    if (therapeuticSelect && therapeuticOtherDiv) {
+        // Check on load
+        if (therapeuticSelect.value === 'Others') {
+            therapeuticOtherDiv.style.display = 'block';
+            if (therapeuticOtherInput) therapeuticOtherInput.required = true;
+        }
+        
+        therapeuticSelect.addEventListener('change', function() {
+            if (this.value === 'Others') {
+                therapeuticOtherDiv.style.display = 'block';
+                if (therapeuticOtherInput) therapeuticOtherInput.required = true;
+            } else {
+                therapeuticOtherDiv.style.display = 'none';
+                if (therapeuticOtherInput) {
+                    therapeuticOtherInput.required = false;
+                    therapeuticOtherInput.value = '';
+                }
+            }
+        });
+    }
+    
+    // Calculate and update defect density
+    function updateDD() {
+        var req = parseInt(totalReq.value) || 0;
+        var fail = parseInt(totalFail.value) || 0;
+        
+        if (req > 0) {
+            var dd = ((fail / req) * 100).toFixed(2);
+            ddValue.textContent = dd + '%';
+        } else {
+            ddValue.textContent = '0.00%';
+        }
+        
+        validateFailures();
+    }
+    
+    // Validate failure reasons sum
+    function validateFailures() {
+        var totalFailures = parseInt(totalFail.value) || 0;
+        var sumFailures = 0;
+        
+        failureInputs.forEach(function(input) {
+            sumFailures += parseInt(input.value) || 0;
+        });
+        
+        failureSum.textContent = sumFailures;
+        failureTotalDisplay.textContent = totalFailures;
+        
+        if (totalFailures > 0 && sumFailures !== totalFailures) {
+            failureWarning.classList.remove('d-none');
+        } else {
+            failureWarning.classList.add('d-none');
+        }
+    }
+    
+    // Attach event listeners
+    if (totalReq && totalFail) {
+        totalReq.addEventListener('input', updateDD);
+        totalFail.addEventListener('input', updateDD);
+    }
+    
+    failureInputs.forEach(function(input) {
+        input.addEventListener('input', validateFailures);
+    });
+    
+    // Form submission validation
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            var req = parseInt(totalReq.value) || 0;
+            var fail = parseInt(totalFail.value) || 0;
+            
+            // Check if failures exceed requirements
+            if (fail > req) {
+                e.preventDefault();
+                alert('Total Failures cannot exceed Total Requirements!');
+                totalFail.focus();
+                return false;
+            }
+            
+            // Check therapeutic area "Others"
+            if (therapeuticSelect && therapeuticSelect.value === 'Others') {
+                if (therapeuticOtherInput && !therapeuticOtherInput.value.trim()) {
+                    e.preventDefault();
+                    alert('Please specify the therapeutic area details!');
+                    therapeuticOtherInput.focus();
+                    return false;
+                }
+            }
+            
+            // Check if failure reasons sum doesn't match
+            var totalFailures = parseInt(totalFail.value) || 0;
+            var sumFailures = 0;
+            failureInputs.forEach(function(input) {
+                sumFailures += parseInt(input.value) || 0;
+            });
+            
+            if (totalFailures > 0 && sumFailures !== totalFailures) {
+                var confirmMsg = 'Warning: The sum of failure reasons (' + sumFailures + 
+                               ') does not match Total Failures (' + totalFailures + ').\n\n' +
+                               'Do you want to continue anyway?';
+                if (!confirm(confirmMsg)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+    }
+    
+    // Initial calculation
+    updateDD();
+})();
+</script>
+{% endblock %}

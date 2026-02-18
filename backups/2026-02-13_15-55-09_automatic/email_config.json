@@ -1,0 +1,11 @@
+{
+    "enabled": false,
+    "smtp_server": "",
+    "smtp_port": 587,
+    "sender_email": "",
+    "sender_password": "",
+    "use_tls": true,
+    "notify_on_create": true,
+    "notify_on_update": false,
+    "admin_email": "superuser@testportal.com"
+}

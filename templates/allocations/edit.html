@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Allocation - TestingHub Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .form-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .form-header {
+            border-bottom: 3px solid #f59e0b;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-header h2 {
+            color: #f59e0b;
+            font-weight: 700;
+        }
+        
+        .readonly-info {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .readonly-badge {
+            background: #cbd5e0;
+            color: #334155;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
+        }
+        
+        .category-detail-input {
+            display: none;
+            margin-top: 1rem;
+        }
+        
+        .therapeutic-other-input {
+            display: none;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('home.index') }}">
+                <i class="bi bi-shield-check"></i> TestingHub Portal
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('allocations.view', allocation_id=allocation.id) }}">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+                <span class="navbar-text mx-3">
+                    <i class="bi bi-person-circle"></i> {{ user.username }}
+                </span>
+                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Form Container -->
+    <div class="form-container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Header -->
+        <div class="form-header">
+            <h2><i class="bi bi-pencil-square"></i> Edit Allocation</h2>
+            <p class="text-muted mb-0">Modify allocation: {{ allocation.trial_id }}</p>
+        </div>
+
+        <!-- Read-only Info -->
+        <div class="readonly-info">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <span class="readonly-badge">
+                        <i class="bi bi-award"></i> Role: {{ allocation.role }}
+                    </span>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <span class="readonly-badge">
+                        <i class="bi bi-person-check"></i> Created By: {{ allocation.created_by }}
+                    </span>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <span class="readonly-badge">
+                        <i class="bi bi-calendar"></i> Created: {{ allocation.created_at[:16] }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" id="editForm">
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="test_engineer_name" class="form-label">
+                            <i class="bi bi-person"></i> Test Engineer *
+                        </label>
+                        <input type="text" class="form-control" id="test_engineer_name" 
+                               name="test_engineer_name" 
+                               value="{{ allocation.test_engineer_name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="trial_id" class="form-label">
+                            <i class="bi bi-card-text"></i> Trial ID *
+                        </label>
+                        <input type="text" class="form-control" id="trial_id" 
+                               name="trial_id" 
+                               value="{{ allocation.trial_id }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="system" class="form-label">
+                            <i class="bi bi-laptop"></i> System *
+                        </label>
+                        <select class="form-select" id="system" name="system" required>
+                            {% for system in systems %}
+                                <option value="{{ system }}" 
+                                        {% if system == allocation.system %}selected{% endif %}>
+                                    {{ system }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Trial Category -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-folder"></i> Trial Category *
+                        </label>
+                        <select class="form-select" id="category_type" name="category_type" required>
+                            {% set current_is_cr = 'Change Request' in allocation.trial_category %}
+                            <option value="Build" {% if not current_is_cr %}selected{% endif %}>Build</option>
+                            <option value="Change Request" {% if current_is_cr %}selected{% endif %}>Change Request</option>
+                        </select>
+                    </div>
+
+                    <!-- Change Request Detail -->
+                    <div class="category-detail-input" id="categoryDetailDiv">
+                        <label for="category_detail" class="form-label">
+                            <i class="bi bi-pencil"></i> Change Request Details *
+                        </label>
+                        {% set cr_detail = allocation.trial_category.replace('Change Request - ', '') if 'Change Request' in allocation.trial_category else '' %}
+                        <input type="text" class="form-control" id="category_detail" 
+                               name="category_detail" 
+                               value="{{ cr_detail }}"
+                               placeholder="e.g., CR01, CR02">
+                    </div>
+
+                    <!-- Therapeutic Area -->
+                    <div class="mb-3">
+                        <label for="therapeutic_area_type" class="form-label">
+                            <i class="bi bi-heart-pulse"></i> Therapeutic Area *
+                        </label>
+                        <select class="form-select" id="therapeutic_area_type" 
+                                name="therapeutic_area_type" required>
+                            {% for area in therapeutic_areas %}
+                                {% set current_area_type = allocation.therapeutic_area_type if allocation.therapeutic_area_type else ('Others' if 'Others -' in allocation.therapeutic_area else allocation.therapeutic_area) %}
+                                <option value="{{ area }}" 
+                                        {% if area == current_area_type %}selected{% endif %}>
+                                    {{ area }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Therapeutic Area Other -->
+                    <div class="therapeutic-other-input" id="therapeuticOtherDiv">
+                        <label for="therapeutic_area_other" class="form-label">
+                            Please specify Therapeutic Area *
+                        </label>
+                        {% set area_other = allocation.therapeutic_area.replace('Others - ', '') if 'Others -' in allocation.therapeutic_area else '' %}
+                        <input type="text" class="form-control" id="therapeutic_area_other" 
+                               name="therapeutic_area_other" 
+                               value="{{ area_other }}"
+                               placeholder="Enter details">
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="role" class="form-label">
+                            <i class="bi bi-award"></i> Role *
+                        </label>
+                        <select class="form-select" id="role" name="role" required>
+                            {% for role_option in roles %}
+                                <option value="{{ role_option }}" 
+                                        {% if role_option == allocation.role %}selected{% endif %}>
+                                    {{ role_option }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="activity" class="form-label">
+                            <i class="bi bi-card-list"></i> Activity * (Max 200 characters)
+                        </label>
+                        <textarea class="form-control" id="activity" name="activity" 
+                                  rows="4" maxlength="200" required>{{ allocation.activity }}</textarea>
+                        <small class="form-text text-muted">
+                            <span id="charCount">{{ allocation.activity|length if allocation.activity else 0 }}</span>/200 characters
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">
+                            <i class="bi bi-calendar-event"></i> Start Date *
+                        </label>
+                        <input type="date" class="form-control" id="start_date" 
+                               name="start_date" 
+                               value="{{ allocation.start_date }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">
+                            <i class="bi bi-calendar-check"></i> End Date *
+                        </label>
+                        <input type="date" class="form-control" id="end_date" 
+                               name="end_date" 
+                               value="{{ allocation.end_date }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Action Buttons -->
+            <div class="row">
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <a href="{{ url_for('allocations.view', allocation_id=allocation.id) }}" 
+                       class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize display state based on current values
+            const categoryType = document.getElementById('category_type');
+            const categoryDetailDiv = document.getElementById('categoryDetailDiv');
+            const categoryDetail = document.getElementById('category_detail');
+            
+            // Show/hide category detail on page load
+            if (categoryType.value === 'Change Request') {
+                categoryDetailDiv.style.display = 'block';
+                categoryDetail.required = true;
+            }
+            
+            // Category type change handler
+            categoryType.addEventListener('change', function() {
+                if (this.value === 'Change Request') {
+                    categoryDetailDiv.style.display = 'block';
+                    categoryDetail.required = true;
+                } else {
+                    categoryDetailDiv.style.display = 'none';
+                    categoryDetail.required = false;
+                    categoryDetail.value = '';
+                }
+            });
+
+            // Therapeutic area handlers
+            const therapeuticType = document.getElementById('therapeutic_area_type');
+            const therapeuticOtherDiv = document.getElementById('therapeuticOtherDiv');
+            const therapeuticOther = document.getElementById('therapeutic_area_other');
+            
+            // Show/hide therapeutic other on page load
+            if (therapeuticType.value === 'Others') {
+                therapeuticOtherDiv.style.display = 'block';
+                therapeuticOther.required = true;
+            }
+            
+            therapeuticType.addEventListener('change', function() {
+                if (this.value === 'Others') {
+                    therapeuticOtherDiv.style.display = 'block';
+                    therapeuticOther.required = true;
+                } else {
+                    therapeuticOtherDiv.style.display = 'none';
+                    therapeuticOther.required = false;
+                    therapeuticOther.value = '';
+                }
+            });
+
+            // Character counter
+            const activityInput = document.getElementById('activity');
+            const charCount = document.getElementById('charCount');
+            
+            activityInput.addEventListener('input', function() {
+                charCount.textContent = this.value.length;
+            });
+
+            // Date validation
+            const startDate = document.getElementById('start_date');
+            const endDate = document.getElementById('end_date');
+            
+            function validateDates() {
+                if (startDate.value && endDate.value) {
+                    if (new Date(endDate.value) < new Date(startDate.value)) {
+                        endDate.setCustomValidity('End date must be after start date');
+                    } else {
+                        endDate.setCustomValidity('');
+                    }
+                }
+            }
+            
+            startDate.addEventListener('change', validateDates);
+            endDate.addEventListener('change', validateDates);
+        });
+    </script>
+</body>
+</html>

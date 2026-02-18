@@ -1,0 +1,769 @@
+{% extends "base.html" %}
+{% block title %}Quality Dashboard - TestingHub Portal{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        margin-bottom: 2rem;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .metric-label {
+        color: #718096;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+    }
+    
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .chart-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        height: 100%;
+    }
+    
+    .chart-card .card-header {
+        border-radius: 15px 15px 0 0;
+    }
+</style>
+
+<!-- Hidden data storage for JavaScript -->
+<div id="statsData" style="display:none;"
+     data-unique-trials="{{ stats.unique_trials or 0 }}"
+     data-total-requirements="{{ stats.total_requirements or 0 }}"
+     data-total-failures="{{ stats.total_failures or 0 }}"
+     data-avg-defect-density="{{ stats.avg_defect_density or 0 }}">
+</div>
+
+<div class="container-fluid mt-4">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb bg-transparent mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('home.index') }}" class="text-white">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('quality.main') }}" class="text-white">Quality</a>
+                </li>
+                <li class="breadcrumb-item text-white active">Dashboard</li>
+            </ol>
+        </nav>
+        
+        <h2 class="mb-2">
+            <i class="bi bi-speedometer2"></i> Trial Quality Dashboard
+        </h2>
+        <p class="lead mb-0">Comprehensive quality metrics and analytics</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="bi bi-funnel-fill"></i> Filter Dashboard Data
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('quality.dashboard') }}" id="filterForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-tag"></i> Trial ID
+                        </label>
+                        <select class="form-select" name="trial_id" onchange="this.form.submit()">
+                            <option value="All" {% if filters.trial_id == 'All' %}selected{% endif %}>All Trials</option>
+                            {% for tid in trial_ids %}
+                            <option value="{{ tid }}" {% if filters.trial_id == tid %}selected{% endif %}>{{ tid }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-layers"></i> Phase
+                        </label>
+                        <select class="form-select" name="phase" onchange="this.form.submit()">
+                            <option value="All" {% if filters.phase == 'All' %}selected{% endif %}>All Phases</option>
+                            {% for p in phases %}
+                            <option value="{{ p }}" {% if filters.phase == p %}selected{% endif %}>{{ p }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-file-text"></i> Type
+                        </label>
+                        <select class="form-select" name="type" onchange="this.form.submit()">
+                            <option value="All" {% if filters.type == 'All' %}selected{% endif %}>All Types</option>
+                            {% for t in types %}
+                            <option value="{{ t }}" {% if filters.type == t %}selected{% endif %}>{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-arrow-repeat"></i> Round
+                        </label>
+                        <select class="form-select" name="round" onchange="this.form.submit()">
+                            <option value="All" {% if filters.round == 'All' %}selected{% endif %}>All Rounds</option>
+                            {% for r in rounds %}
+                            <option value="{{ r }}" {% if filters.round == r %}selected{% endif %}>Round {{ r }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-1 d-flex align-items-end">
+                        <a href="{{ url_for('quality.dashboard') }}" 
+                           class="btn btn-secondary w-100" 
+                           title="Reset Filters">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div style="font-size: 2.5rem;">🎯</div>
+                <div class="metric-value">{{ stats.unique_trials or 0 }}</div>
+                <div class="metric-label">Total Trials</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div style="font-size: 2.5rem;">📋</div>
+                <div class="metric-value">{{ stats.total_requirements or 0 }}</div>
+                <div class="metric-label">Total Requirements</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div style="font-size: 2.5rem;">❌</div>
+                <div class="metric-value">{{ stats.total_failures or 0 }}</div>
+                <div class="metric-label">Total Failures</div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div style="font-size: 2.5rem;">📊</div>
+                <div class="metric-value">{{ "%.2f"|format(stats.avg_defect_density or 0) }}%</div>
+                <div class="metric-label">Avg Defect Density</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts - Compact 4-Column Layout with Modal Expansion -->
+    <div class="row g-3 mb-4">
+        <!-- Chart 1: Failure Reasons -->
+        <div class="col-md-3">
+            <div class="chart-card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 small">
+                        <i class="bi bi-pie-chart-fill"></i> Failure Reasons
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#chartModal1">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+                <div class="card-body p-2">
+                    <canvas id="failureReasonsChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chart 2: Type Distribution -->
+        <div class="col-md-3">
+            <div class="chart-card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 small">
+                        <i class="bi bi-diagram-3-fill"></i> Type Distribution
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#chartModal2">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+                <div class="card-body p-2">
+                    <canvas id="typeBreakdownChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chart 3: Records by Phase -->
+        <div class="col-md-3">
+            <div class="chart-card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 small">
+                        <i class="bi bi-layers-fill"></i> Records by Phase
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#chartModal3">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+                <div class="card-body p-2">
+                    <canvas id="phaseBreakdownChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chart 4: Distribution by Round -->
+        <div class="col-md-3">
+            <div class="chart-card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 small">
+                        <i class="bi bi-arrow-repeat"></i> By Round
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#chartModal4">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+                <div class="card-body p-2">
+                    <canvas id="roundBreakdownChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals for Enlarged Charts -->
+    <!-- Modal 1: Failure Reasons -->
+    <div class="modal fade" id="chartModal1" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pie-chart-fill"></i> Failure Reasons Breakdown
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="failureReasonsChartLarge" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Type Distribution -->
+    <div class="modal fade" id="chartModal2" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-diagram-3-fill"></i> Type Distribution
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="typeBreakdownChartLarge" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Records by Phase -->
+    <div class="modal fade" id="chartModal3" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-layers-fill"></i> Records by Phase
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="phaseBreakdownChartLarge" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 4: Distribution by Round -->
+    <div class="modal fade" id="chartModal4" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-arrow-repeat"></i> Distribution by Round
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="roundBreakdownChartLarge" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Data Table -->
+    <div class="chart-card">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-table"></i> Detailed Records ({{ records|length }})
+                </h5>
+                <button class="btn btn-sm btn-outline-primary" 
+                        type="button" 
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#dataTable">
+                    <i class="bi bi-chevron-down"></i> Toggle Table
+                </button>
+            </div>
+        </div>
+        <div class="collapse show" id="dataTable">
+            <div class="card-body">
+                {% if records %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm" id="qualityDataTable" style="font-size: 0.875rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Trial ID</th>
+                                <th>Phase</th>
+                                <th>Therapeutic</th>
+                                <th>Type</th>
+                                <th>Trial R</th>
+                                <th>Req R</th>
+                                <th>Req</th>
+                                <th>Fail</th>
+                                <th>Spec</th>
+                                <th>Mock CRF</th>
+                                <th>Program</th>
+                                <th>Script</th>
+                                <th>DD%</th>
+                                <th>Created By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                            <tr>
+                                <td><span class="badge bg-info">{{ record.trial_id }}</span></td>
+                                <td><small>{{ record.phase }}</small></td>
+                                <td><small>{{ record.therapeutic_area or 'N/A' }}</small></td>
+                                <td><span class="badge bg-primary">{{ record.type_of_requirement }}</span></td>
+                                <td><span class="badge bg-secondary">R{{ record.current_round }}</span></td>
+                                <td><span class="badge bg-success">{{ record.type_of_requirement[:1] }}{{ record.requirement_round or 1 }}</span></td>
+                                <td><strong>{{ record.total_requirements }}</strong></td>
+                                <td><span class="badge bg-danger">{{ record.total_failures }}</span></td>
+                                <td>
+                                    {% if record.spec_issue > 0 %}
+                                        <span class="badge bg-primary">{{ record.spec_issue }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if record.mock_crf_issue > 0 %}
+                                        <span class="badge bg-success">{{ record.mock_crf_issue }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if record.programming_issue > 0 %}
+                                        <span class="badge bg-warning">{{ record.programming_issue }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if record.scripting_issue > 0 %}
+                                        <span class="badge bg-info">{{ record.scripting_issue }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set dd = record.defect_density or 0 %}
+                                    {% if dd < 10 %}
+                                        <span class="badge bg-success">{{ "%.1f"|format(dd) }}%</span>
+                                    {% elif dd < 25 %}
+                                        <span class="badge bg-warning">{{ "%.1f"|format(dd) }}%</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ "%.1f"|format(dd) }}%</span>
+                                    {% endif %}
+                                </td>
+                                <td><small>{{ record.created_by }}</small></td>
+                                <td>
+                                    <a href="{{ url_for('quality.view_single', record_id=record.record_id) }}" 
+                                       class="btn btn-sm btn-primary" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i> No records match the selected filters.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden JSON data for charts -->
+<script id="chartData" type="application/json">
+{
+    "failure_reasons": {{ stats.failure_reasons|tojson|safe if stats.failure_reasons else '{}' }},
+    "type_breakdown": {{ stats.type_breakdown|tojson|safe if stats.type_breakdown else '{}' }},
+    "phase_breakdown": {{ stats.phase_breakdown|tojson|safe if stats.phase_breakdown else '{}' }},
+    "round_breakdown": {{ stats.round_breakdown|tojson|safe if stats.round_breakdown else '{}' }}
+}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+    
+    // ⭐ IMPORTANT: Register the datalabels plugin globally
+    if (typeof ChartDataLabels !== 'undefined') {
+        Chart.register(ChartDataLabels);
+    }
+    
+    // Parse chart data from JSON script
+    var chartDataElement = document.getElementById('chartData');
+    var chartData = JSON.parse(chartDataElement.textContent);
+    
+    // Chart colors
+    var colors = {
+        primary: ['#667eea', '#764ba2', '#f093fb', '#4facfe'],
+        success: ['#10b981', '#14b8a6', '#06b6d4', '#0891b2'],
+        warning: ['#f59e0b', '#f97316', '#fb923c', '#fdba74'],
+        danger: ['#ef4444', '#dc2626', '#f87171', '#fca5a5']
+    };
+    
+    // Store chart instances
+    var chartInstances = {};
+    
+    // Helper function to check if object has data
+    function hasData(obj) {
+        return obj && Object.keys(obj).length > 0;
+    }
+    
+    // Helper function to show no data message
+    function showNoData(canvasId) {
+        var canvas = document.getElementById(canvasId);
+        if (canvas) {
+            canvas.parentElement.innerHTML = 
+                '<div class="alert alert-secondary text-center m-0">' +
+                '<small><i class="bi bi-info-circle"></i> No data</small>' +
+                '</div>';
+        }
+    }
+    
+    // Function to create chart
+    function createChart(canvasId, config) {
+        var canvas = document.getElementById(canvasId);
+        if (canvas) {
+            return new Chart(canvas, config);
+        }
+        return null;
+    }
+    
+    // 1. Failure Reasons Chart (Doughnut with labels inside)
+    if (hasData(chartData.failure_reasons)) {
+        var failureLabels = Object.keys(chartData.failure_reasons);
+        var failureValues = Object.values(chartData.failure_reasons);
+        
+        var failureConfig = {
+            type: 'doughnut',
+            data: {
+                labels: failureLabels,
+                datasets: [{
+                    data: failureValues,
+                    backgroundColor: colors.primary,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: { 
+                            padding: 8,
+                            font: { size: 10 }
+                        }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        },
+                        formatter: function(value, context) {
+                            return value;
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]  // ⭐ Explicitly add plugin here
+        };
+        
+        chartInstances.failure = createChart('failureReasonsChart', failureConfig);
+        
+        // Create large version in modal
+        $('#chartModal1').on('shown.bs.modal', function() {
+            if (!chartInstances.failureLarge) {
+                var largeConfig = JSON.parse(JSON.stringify(failureConfig));
+                largeConfig.options.plugins.datalabels.font.size = 16;
+                largeConfig.plugins = [ChartDataLabels];
+                chartInstances.failureLarge = createChart('failureReasonsChartLarge', largeConfig);
+            }
+        });
+    } else {
+        showNoData('failureReasonsChart');
+    }
+    
+    // 2. Type Breakdown Chart (Pie with labels inside)
+    if (hasData(chartData.type_breakdown)) {
+        var typeLabels = Object.keys(chartData.type_breakdown);
+        var typeValues = Object.values(chartData.type_breakdown);
+        
+        var typeConfig = {
+            type: 'pie',
+            data: {
+                labels: typeLabels,
+                datasets: [{
+                    data: typeValues,
+                    backgroundColor: colors.success,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: { 
+                            padding: 8,
+                            font: { size: 10 }
+                        }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        },
+                        formatter: function(value, context) {
+                            return value;
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]  // ⭐ Explicitly add plugin here
+        };
+        
+        chartInstances.type = createChart('typeBreakdownChart', typeConfig);
+        
+        $('#chartModal2').on('shown.bs.modal', function() {
+            if (!chartInstances.typeLarge) {
+                var largeConfig = JSON.parse(JSON.stringify(typeConfig));
+                largeConfig.options.plugins.datalabels.font.size = 16;
+                largeConfig.plugins = [ChartDataLabels];
+                chartInstances.typeLarge = createChart('typeBreakdownChartLarge', largeConfig);
+            }
+        });
+    } else {
+        showNoData('typeBreakdownChart');
+    }
+    
+    // 3. Phase Breakdown Chart (Bar chart - no datalabels)
+    if (hasData(chartData.phase_breakdown)) {
+        var phaseLabels = Object.keys(chartData.phase_breakdown);
+        var phaseValues = Object.values(chartData.phase_breakdown);
+        
+        var phaseConfig = {
+            type: 'bar',
+            data: {
+                labels: phaseLabels,
+                datasets: [{
+                    label: 'Records',
+                    data: phaseValues,
+                    backgroundColor: colors.warning[0],
+                    borderColor: colors.warning[1],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false }  // Disable for bar chart
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { 
+                            precision: 0,
+                            font: { size: 9 }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 8 }
+                        }
+                    }
+                }
+            }
+        };
+        
+        chartInstances.phase = createChart('phaseBreakdownChart', phaseConfig);
+        
+        $('#chartModal3').on('shown.bs.modal', function() {
+            if (!chartInstances.phaseLarge) {
+                var largeConfig = JSON.parse(JSON.stringify(phaseConfig));
+                largeConfig.options.scales.y.ticks.font.size = 12;
+                largeConfig.options.scales.x.ticks.font.size = 11;
+                chartInstances.phaseLarge = createChart('phaseBreakdownChartLarge', largeConfig);
+            }
+        });
+    } else {
+        showNoData('phaseBreakdownChart');
+    }
+    
+    // 4. Round Breakdown Chart (Doughnut with labels inside)
+    if (hasData(chartData.round_breakdown)) {
+        var roundKeys = Object.keys(chartData.round_breakdown);
+        var roundLabels = roundKeys.map(function(r) { return 'R' + r; });
+        var roundValues = Object.values(chartData.round_breakdown);
+        
+        var roundConfig = {
+            type: 'doughnut',
+            data: {
+                labels: roundLabels,
+                datasets: [{
+                    data: roundValues,
+                    backgroundColor: colors.danger,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: { 
+                            padding: 8,
+                            font: { size: 10 }
+                        }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        },
+                        anchor: 'center',
+                        align: 'center',
+                        formatter: function(value, context) {
+                            return value;
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]  // ⭐ Explicitly add plugin here
+        };
+        
+        chartInstances.round = createChart('roundBreakdownChart', roundConfig);
+        
+        $('#chartModal4').on('shown.bs.modal', function() {
+            if (!chartInstances.roundLarge) {
+                var largeConfig = JSON.parse(JSON.stringify(roundConfig));
+                largeConfig.options.plugins.datalabels.font.size = 16;
+                largeConfig.plugins = [ChartDataLabels];
+                chartInstances.roundLarge = createChart('roundBreakdownChartLarge', largeConfig);
+            }
+        });
+    } else {
+        showNoData('roundBreakdownChart');
+    }
+    
+    // Initialize DataTable
+    $(document).ready(function() {
+        var table = $('#qualityDataTable');
+        if (table.length) {
+            if ($.fn.DataTable.isDataTable('#qualityDataTable')) {
+                table.DataTable().destroy();
+            }
+            
+            table.DataTable({
+                pageLength: 10,
+                order: [[4, 'desc'], [5, 'desc']],
+                responsive: true,
+                scrollX: true,
+                language: {
+                    search: "Search records:",
+                    lengthMenu: "Show _MENU_ records",
+                    info: "Showing _START_ to _END_ of _TOTAL_ records"
+                },
+                columnDefs: [
+                    { orderable: false, targets: -1 }
+                ]
+            });
+        }
+    });
+})();
+</script>
+{% endblock %}

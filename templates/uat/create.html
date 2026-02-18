@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Create UAT Record - TestingHub Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-plus-circle text-primary"></i> Create UAT Record
+                    </h2>
+                    <p class="text-muted mb-0">Add a new User Acceptance Testing record</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('uat.main') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to UAT
+                    </a>
+                </div>
+            </div>
+
+            <!-- Create Form Card -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('uat.create') }}" id="uatCreateForm">
+                        <div class="row">
+                            <!-- Left Column: Trial Information -->
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-info-circle text-primary"></i> Trial Information
+                                </h5>
+                                
+                                <!-- Trial ID -->
+                                <div class="mb-3">
+                                    <label for="trial_id" class="form-label">
+                                        Trial ID <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="trial_id" 
+                                           name="trial_id" 
+                                           placeholder="e.g., TRL-2024-001"
+                                           value="{{ form_data.get('trial_id', '') if form_data else '' }}"
+                                           required>
+                                    <small class="form-text text-muted">Unique trial identifier</small>
+                                </div>
+
+                                <!-- UAT Round -->
+                                <div class="mb-3">
+                                    <label for="uat_round" class="form-label">
+                                        UAT Round <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="uat_round" 
+                                           name="uat_round" 
+                                           placeholder="e.g., Round 1, UAT-Phase1, Initial Testing"
+                                           value="{{ form_data.get('uat_round', '') if form_data else '' }}"
+                                           required>
+                                    <small class="form-text text-muted">Enter the UAT testing round/phase</small>
+                                </div>
+
+                                <!-- Category -->
+                                <h6 class="border-bottom pb-2 mb-3 mt-4">
+                                    <i class="fas fa-tag text-secondary"></i> Category
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="category_type" class="form-label">
+                                        Category Type <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" 
+                                            id="category_type" 
+                                            name="category_type" 
+                                            required
+                                            onchange="toggleCategoryDetail()">
+                                        <option value="Build" {{ 'selected' if form_data and form_data.get('category_type') == 'Build' else '' }}>Build</option>
+                                        <option value="Change Request" {{ 'selected' if form_data and form_data.get('category_type') == 'Change Request' else '' }}>Change Request</option>
+                                    </select>
+                                </div>
+
+                                <!-- Category Detail (for Change Request) -->
+                                <div class="mb-3" id="category_detail_group" style="display: none;">
+                                    <label for="category_detail" class="form-label">
+                                        Change Request Details <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="category_detail" 
+                                           name="category_detail" 
+                                           placeholder="e.g., CR01, CR02, CR-2024-001"
+                                           value="{{ form_data.get('category_detail', '') if form_data else '' }}">
+                                    <small class="form-text text-muted">Enter the change request number or details</small>
+                                </div>
+
+                                <!-- Planned Dates -->
+                                <h6 class="border-bottom pb-2 mb-3 mt-4">
+                                    <i class="fas fa-calendar text-info"></i> Planned Dates
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="planned_start_date" class="form-label">
+                                        Planned Start Date <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" 
+                                           class="form-control" 
+                                           id="planned_start_date" 
+                                           name="planned_start_date"
+                                           value="{{ form_data.get('planned_start_date', '') if form_data else '' }}"
+                                           onchange="checkDateDifference()"
+                                           required>
+                                    <small class="form-text text-muted">When UAT is planned to start</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="planned_end_date" class="form-label">
+                                        Planned End Date <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="date" 
+                                           class="form-control" 
+                                           id="planned_end_date" 
+                                           name="planned_end_date"
+                                           value="{{ form_data.get('planned_end_date', '') if form_data else '' }}"
+                                           onchange="checkDateDifference()"
+                                           required>
+                                    <small class="form-text text-muted">When UAT is planned to end</small>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Test Results & Actual Dates -->
+                            <div class="col-md-6">
+                                <!-- Actual Dates -->
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-calendar-check text-success"></i> Actual Dates
+                                </h5>
+                                <p class="text-muted small">Leave empty if UAT not started/completed yet</p>
+
+                                <div class="mb-3">
+                                    <label for="actual_start_date" class="form-label">
+                                        Actual Start Date
+                                    </label>
+                                    <input type="date" 
+                                           class="form-control" 
+                                           id="actual_start_date" 
+                                           name="actual_start_date"
+                                           value="{{ form_data.get('actual_start_date', '') if form_data else '' }}"
+                                           onchange="checkDateDifference()">
+                                    <small class="form-text text-muted">When UAT actually started (optional)</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="actual_end_date" class="form-label">
+                                        Actual End Date
+                                    </label>
+                                    <input type="date" 
+                                           class="form-control" 
+                                           id="actual_end_date" 
+                                           name="actual_end_date"
+                                           value="{{ form_data.get('actual_end_date', '') if form_data else '' }}"
+                                           onchange="checkDateDifference()">
+                                    <small class="form-text text-muted">When UAT actually ended (optional)</small>
+                                </div>
+
+                                <!-- Date Difference Reason (Conditional) -->
+                                <div class="mb-3" id="date_difference_group" style="display: none;">
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <strong>Date Difference Detected!</strong>
+                                    </div>
+                                    <label for="date_difference_reason" class="form-label">
+                                        Reason for Date Difference <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control" 
+                                              id="date_difference_reason" 
+                                              name="date_difference_reason" 
+                                              rows="3"
+                                              placeholder="Please explain why actual dates differ from planned dates...">{{ form_data.get('date_difference_reason', '') if form_data else '' }}</textarea>
+                                    <small class="form-text text-muted">Required when actual dates differ from planned dates</small>
+                                </div>
+
+                                <!-- Status & Result -->
+                                <h6 class="border-bottom pb-2 mb-3 mt-4">
+                                    <i class="fas fa-tasks text-success"></i> Status & Result
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">
+                                        Status <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="status" name="status" required>
+                                        {% for status in status_options %}
+                                        <option value="{{ status }}" {{ 'selected' if form_data and form_data.get('status') == status else '' }}>
+                                            {{ status }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="result" class="form-label">
+                                        Result <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="result" name="result" required>
+                                        {% for result in result_options %}
+                                        <option value="{{ result }}" {{ 'selected' if form_data and form_data.get('result') == result else '' }}>
+                                            {{ result }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- Email Body -->
+                                <div class="mb-3">
+                                    <label for="email_body" class="form-label">
+                                        Email Body / Comments
+                                    </label>
+                                    <textarea class="form-control" 
+                                              id="email_body" 
+                                              name="email_body" 
+                                              rows="5"
+                                              placeholder="Enter email content, test summary, issues found, or any additional information...">{{ form_data.get('email_body', '') if form_data else '' }}</textarea>
+                                    <small class="form-text text-muted">Optional: Add detailed UAT summary or notes</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email Notification Section -->
+                        {% if email_configured %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body">
+                                        <h6 class="mb-3">
+                                            <i class="fas fa-envelope text-info"></i> Email Notification
+                                        </h6>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   id="send_notification" 
+                                                   name="send_notification"
+                                                   checked>
+                                            <label class="form-check-label" for="send_notification">
+                                                <strong>Send email notification</strong>
+                                                <small class="d-block text-muted">
+                                                    Notify administrators when this UAT record is created
+                                                </small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i> 
+                                            Fields marked with <span class="text-danger">*</span> are required
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <a href="{{ url_for('uat.main') }}" class="btn btn-secondary me-2">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Create UAT Record
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Toggle category detail based on category type
+function toggleCategoryDetail() {
+    const categoryType = document.getElementById('category_type').value;
+    const detailGroup = document.getElementById('category_detail_group');
+    const detailInput = document.getElementById('category_detail');
+    
+    if (categoryType === 'Change Request') {
+        detailGroup.style.display = 'block';
+        detailInput.required = true;
+    } else {
+        detailGroup.style.display = 'none';
+        detailInput.required = false;
+        detailInput.value = '';
+    }
+}
+
+// Check for date differences and show/hide reason field
+function checkDateDifference() {
+    const plannedStart = document.getElementById('planned_start_date').value;
+    const plannedEnd = document.getElementById('planned_end_date').value;
+    const actualStart = document.getElementById('actual_start_date').value;
+    const actualEnd = document.getElementById('actual_end_date').value;
+    
+    const diffGroup = document.getElementById('date_difference_group');
+    const reasonInput = document.getElementById('date_difference_reason');
+    
+    let hasDifference = false;
+    
+    // Check if actual dates differ from planned dates
+    if (actualStart && actualStart !== plannedStart) {
+        hasDifference = true;
+    }
+    if (actualEnd && actualEnd !== plannedEnd) {
+        hasDifference = true;
+    }
+    
+    if (hasDifference) {
+        diffGroup.style.display = 'block';
+        reasonInput.required = true;
+    } else {
+        diffGroup.style.display = 'none';
+        reasonInput.required = false;
+        reasonInput.value = '';
+    }
+}
+
+// Form validation
+document.getElementById('uatCreateForm').addEventListener('submit', function(e) {
+    const trialId = document.getElementById('trial_id').value.trim();
+    const uatRound = document.getElementById('uat_round').value.trim();
+    const categoryType = document.getElementById('category_type').value;
+    const categoryDetail = document.getElementById('category_detail').value.trim();
+    
+    if (!trialId || !uatRound) {
+        e.preventDefault();
+        alert('Please fill in Trial ID and UAT Round');
+        return false;
+    }
+    
+    if (categoryType === 'Change Request' && !categoryDetail) {
+        e.preventDefault();
+        alert('Please enter Change Request details');
+        return false;
+    }
+    
+    // Check date difference validation
+    const reasonInput = document.getElementById('date_difference_reason');
+    if (reasonInput.required && !reasonInput.value.trim()) {
+        e.preventDefault();
+        alert('Please provide a reason for the date difference');
+        return false;
+    }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleCategoryDetail();
+    checkDateDifference();
+});
+</script>
+{% endblock %}

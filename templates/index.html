@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Test Engineer Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-house-door"></i> Welcome, {{ current_user.username }}!
+        </h1>
+        <p class="lead">Test Engineer Portal - Your central hub for allocations, audits, quality, and UAT management.</p>
+    </div>
+</div>
+
+<div class="row g-4 mt-3">
+    <!-- Allocations Card -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calendar-check"></i> Allocations</h5>
+                <p class="card-text">Manage test engineer allocations and assignments.</p>
+                <a href="{{ url_for('allocations.list_view') }}" class="btn btn-light">View All</a>
+                <a href="{{ url_for('allocations.create') }}" class="btn btn-outline-light">Create New</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Audit Card -->
+    {% if current_user.role in ['superuser', 'admin', 'manager'] or current_user.is_audit_reviewer %}
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-journal-text"></i> Audit</h5>
+                <p class="card-text">Access audit logs and trail documents.</p>
+                <a href="{{ url_for('audit.main') }}" class="btn btn-light">Dashboard</a>
+                <a href="{{ url_for('audit.viewer') }}" class="btn btn-outline-light">View Logs</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quality Card -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-white bg-warning h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-star"></i> Quality</h5>
+                <p class="card-text">Manage quality records and trials.</p>
+                <a href="{{ url_for('quality.main') }}" class="btn btn-light">Dashboard</a>
+                <a href="{{ url_for('quality.create') }}" class="btn btn-outline-light">Create Record</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- UAT Card -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-check-circle"></i> UAT</h5>
+                <p class="card-text">User Acceptance Testing records.</p>
+                <a href="{{ url_for('uat.main') }}" class="btn btn-light">Dashboard</a>
+                <a href="{{ url_for('uat.create') }}" class="btn btn-outline-light">Create Record</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Change Requests Card -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-white bg-secondary h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-arrow-repeat"></i> Change Requests</h5>
+                <p class="card-text">Track and manage change requests.</p>
+                <a href="{{ url_for('change_request.main') }}" class="btn btn-light">View All</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Card (only for admins) -->
+    {% if current_user.role in ['superuser', 'admin', 'manager'] %}
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-white bg-danger h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-gear"></i> Admin</h5>
+                <p class="card-text">Manage users and system settings.</p>
+                <a href="{{ url_for('admin.admin_user') }}" class="btn btn-light">User Management</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Stats Section -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h3 class="mb-3">Quick Stats</h3>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 class="text-primary" id="stats-allocations">-</h2>
+                <p class="text-muted">Active Allocations</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 class="text-success" id="stats-quality">-</h2>
+                <p class="text-muted">Quality Records</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 class="text-info" id="stats-uat">-</h2>
+                <p class="text-muted">UAT Records</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h2 class="text-warning" id="stats-changes">-</h2>
+                <p class="text-muted">Change Requests</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load quick stats (placeholder - connect to your API)
+document.addEventListener('DOMContentLoaded', function() {
+    // Example: fetch stats from API
+    // For now, using placeholder values
+    document.getElementById('stats-allocations').textContent = '0';
+    document.getElementById('stats-quality').textContent = '0';
+    document.getElementById('stats-uat').textContent = '0';
+    document.getElementById('stats-changes').textContent = '0';
+});
+</script>
+{% endblock %}

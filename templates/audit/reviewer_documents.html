@@ -1,0 +1,598 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Reviewer - All Documents{% endblock %}
+
+{% block content %}
+<style>
+    .audit-reviewer-hero {
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(6, 182, 212, 0.3);
+        margin-bottom: 2rem;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+    }
+    
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .tmf-badge {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 700;
+        display: inline-block;
+        font-size: 0.85rem;
+    }
+    
+    .category-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    
+    .category-build {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    
+    .category-cr {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+    
+    .dataTables_wrapper .dataTables_length select {
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+    
+    .dataTables_wrapper .dataTables_filter input {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        margin-left: 0.5rem;
+    }
+    
+    table.dataTable thead th {
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 700;
+        color: #495057;
+        background-color: #f8f9fa;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    table.dataTable tbody td {
+        font-size: 0.875rem;
+        padding: 0.75rem 0.5rem;
+        vertical-align: middle;
+    }
+    
+    table.dataTable tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .read-only-banner {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: white;
+        padding: 0.75rem;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Back Button -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{{ url_for('audit.trail_documents') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to My Documents
+            </a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="audit-reviewer-hero text-center">
+        <h2 class="mb-2">
+            <i class="bi bi-shield-check-fill"></i> 🔍 Audit Reviewer - All Trail Documents
+        </h2>
+        <p class="mb-0">Read-only access to all users' trail documents</p>
+    </div>
+    
+    <!-- READ-ONLY Warning Banner -->
+    <div class="read-only-banner">
+        <i class="bi bi-lock-fill"></i> READ-ONLY MODE - You can view and download but cannot edit or delete documents
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="stats-card">
+        <h4 class="text-center mb-4"><i class="bi bi-graph-up"></i> Document Statistics</h4>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">Total Documents</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.te_docs }}</div>
+                    <div class="stat-label">TE Documents</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.build }}</div>
+                    <div class="stat-label">Build</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.change_request }}</div>
+                    <div class="stat-label">Change Requests</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <button class="btn btn-info btn-lg w-100" data-bs-toggle="collapse" data-bs-target="#filterSection">
+                <i class="bi bi-funnel"></i> Toggle Filters
+            </button>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-secondary btn-lg w-100" id="toggleTableBtn">
+                <i class="bi bi-arrows-angle-expand"></i> Toggle Table
+            </button>
+        </div>
+        <div class="col-md-3 offset-md-3">
+            <a href="{{ url_for('audit.reviewer_export_documents', **filters) }}" class="btn btn-success btn-lg w-100">
+                <i class="bi bi-download"></i> Download Excel
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filters Section -->
+    <div class="collapse" id="filterSection">
+        <div class="filter-card">
+            <h5 class="mb-4"><i class="bi bi-funnel-fill"></i> Filter Documents</h5>
+            <form method="GET" action="{{ url_for('audit.reviewer_all_documents') }}">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Trail ID</label>
+                        <select class="form-select" name="trail" id="filterTrail">
+                            <option value="All">All Trails</option>
+                            {% for trail in trails %}
+                            <option value="{{ trail }}" {% if filters.trail == trail %}selected{% endif %}>{{ trail }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Category</label>
+                        <select class="form-select" name="category" id="filterCategory">
+                            <option value="All">All Categories</option>
+                            <option value="Build" {% if filters.category == 'Build' %}selected{% endif %}>Build</option>
+                            <option value="Change Request" {% if filters.category == 'Change Request' %}selected{% endif %}>Change Request</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">TE Document</label>
+                        <select class="form-select" name="te_document" id="filterTEDoc">
+                            <option value="All">All</option>
+                            <option value="Yes" {% if filters.get('te_document') == 'Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if filters.get('te_document') == 'No' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">UAT Round</label>
+                        <select class="form-select" name="uat_round" id="filterUatRound">
+                            <option value="All">All UAT Rounds</option>
+                            {% for uat_round in uat_rounds %}
+                            <option value="{{ uat_round }}" {% if filters.uat_round == uat_round %}selected{% endif %}>{{ uat_round }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Created By</label>
+                        <select class="form-select" name="created_by" id="filterCreatedBy">
+                            <option value="All">All Users</option>
+                            {% for creator in created_by_list %}
+                            <option value="{{ creator }}" {% if filters.created_by == creator %}selected{% endif %}>{{ creator }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <a href="{{ url_for('audit.reviewer_all_documents') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear Filters
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Documents Table -->
+    <div class="stats-card">
+        <h4 class="mb-4">
+            <i class="bi bi-table"></i> All Trail Documents 
+            <span class="badge bg-primary">{{ documents|length }}</span>
+        </h4>
+        
+        {% if documents %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped table-sm" id="documentsTable">
+                <thead>
+                    <tr>
+                        <th>Trail ID</th>
+                        <th>Category</th>
+                        <th>TE1</th>
+                        <th>TE2</th>
+                        <th>Document Name</th>
+                        <th>TE Doc</th>
+                        <th>UAT Round</th>
+                        <th>TMF/Vault ID</th>
+                        <th>TE1 Approval</th>
+                        <th>TE2 Approval</th>
+                        <th>CTDM Approval</th>
+                        <th>Go Live Date</th>
+                        <th>Created By</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr>
+                        <td><span class="badge bg-info">{{ doc.trail }}</span></td>
+                        <td>
+                            {% if doc.category == 'Build' %}
+                                <span class="category-badge category-build">🏗️ Build</span>
+                            {% else %}
+                                <span class="category-badge category-cr">🔄 CR</span>
+                                {% if doc.cr_number %}
+                                <br><small>{{ doc.cr_number }}</small>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ doc.te1 }}</strong></td>
+                        <td><strong>{{ doc.te2 }}</strong></td>
+                        <td><strong>{{ doc.document_name }}</strong></td>
+                        <td>
+                            {% if doc.te_document == 'Yes' %}
+                                <span class="badge bg-success">✅ Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">📄 No</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ doc.uat_round }}</td>
+                        <td><span class="tmf-badge">🔑 {{ doc.tmf_vault_id }}</span></td>
+                        <td>
+                            {% if doc.te1_approval_date %}
+                                <span class="badge bg-success">{{ doc.te1_approval_date }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.te2_approval_date %}
+                                <span class="badge bg-success">{{ doc.te2_approval_date }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.ctdm_approval_date %}
+                                <span class="badge bg-success">{{ doc.ctdm_approval_date }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ doc.go_live_date }}</td>
+                        <td><small>{{ doc.created_by }}</small></td>
+                        <td><small>{{ doc.created_at[:10] if doc.created_at else '-' }}</small></td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-info" data-bs-toggle="modal" 
+                                        data-bs-target="#viewModal{{ doc.id }}"
+                                        title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> No documents found matching the selected filters.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- View Modals -->
+{% for doc in documents %}
+<div class="modal fade" id="viewModal{{ doc.id }}" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white;">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-earmark-text"></i> Trail Document Details (READ-ONLY)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-lock-fill"></i> <strong>Read-Only Mode:</strong> You cannot edit or delete this document.
+                </div>
+                
+                <!-- Header Info -->
+                <div class="alert alert-info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><strong>{{ doc.trail }}</strong> - {{ doc.document_name }}</h5>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="tmf-badge">🔑 {{ doc.tmf_vault_id }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Basic Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <th width="40%">Trail ID:</th>
+                                        <td><span class="badge bg-info">{{ doc.trail }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Category:</th>
+                                        <td>
+                                            {% if doc.category == 'Build' %}
+                                                <span class="category-badge category-build">🏗️ Build</span>
+                                            {% else %}
+                                                <span class="category-badge category-cr">🔄 Change Request</span>
+                                            {% endif %}
+                                            {% if doc.cr_number %}
+                                            <br><small class="text-muted">CR: {{ doc.cr_number }}</small>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Test Engineer 1:</th>
+                                        <td><strong>{{ doc.te1 }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Test Engineer 2:</th>
+                                        <td><strong>{{ doc.te2 }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Document Name:</th>
+                                        <td><strong>{{ doc.document_name }}</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>TE Document:</th>
+                                        <td>
+                                            {% if doc.te_document == 'Yes' %}
+                                                <span class="badge bg-success">✅ Yes</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">📄 No</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="bi bi-file-text"></i> Document Details</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <th width="40%">UAT Round:</th>
+                                        <td><span class="badge bg-primary">{{ doc.uat_round }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>TMF/Vault ID:</th>
+                                        <td><span class="tmf-badge">{{ doc.tmf_vault_id }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Go Live Date:</th>
+                                        <td><strong>{{ doc.go_live_date }}</strong></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="bi bi-calendar-check"></i> Approval Dates</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm table-borderless">
+                                    {% if doc.te_document == 'Yes' %}
+                                    <tr>
+                                        <th width="40%">TE1 Approval:</th>
+                                        <td>
+                                            {% if doc.te1_approval_date %}
+                                                <span class="badge bg-success">{{ doc.te1_approval_date }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Not Available</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>TE2 Approval:</th>
+                                        <td>
+                                            {% if doc.te2_approval_date %}
+                                                <span class="badge bg-success">{{ doc.te2_approval_date }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Not Available</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <th width="40%">CTDM Approval:</th>
+                                        <td>
+                                            {% if doc.ctdm_approval_date %}
+                                                <span class="badge bg-success">{{ doc.ctdm_approval_date }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Not Available</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer Info -->
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="bi bi-person-circle"></i> <strong>Created by:</strong> {{ doc.created_by }}<br>
+                                    <i class="bi bi-clock"></i> <strong>Created at:</strong> {{ doc.created_at }}
+                                </small>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                {% if doc.updated_at %}
+                                <small class="text-muted">
+                                    <i class="bi bi-pencil-square"></i> <strong>Last updated:</strong> {{ doc.updated_at }}<br>
+                                    <i class="bi bi-person"></i> <strong>Updated by:</strong> {{ doc.updated_by }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize DataTable
+$(document).ready(function() {
+    var table = $('#documentsTable').DataTable({
+        "pageLength": 25,
+        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        "order": [[0, "asc"]],
+        "scrollX": true,
+        "columnDefs": [
+            { "orderable": false, "targets": -1 }
+        ],
+        "language": {
+            "search": "Search records:",
+            "lengthMenu": "Show _MENU_ entries",
+            "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+            "infoEmpty": "Showing 0 to 0 of 0 entries",
+            "infoFiltered": "(filtered from _MAX_ total entries)",
+            "paginate": {
+                "first": "First",
+                "last": "Last",
+                "next": "Next",
+                "previous": "Previous"
+            }
+        }
+    });
+    
+    // Toggle table button
+    $('#toggleTableBtn').on('click', function() {
+        $('.table-responsive').toggleClass('table-responsive');
+        table.columns.adjust().draw();
+    });
+});
+</script>
+{% endblock %}

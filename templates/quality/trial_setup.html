@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+{% block title %}Trial Setup - Quality - TestingHub Portal{% endblock %}
+{% block content %}
+<style>
+    .wizard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        margin-bottom: 2rem;
+    }
+    
+    .wizard-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .progress-custom {
+        height: 40px;
+        border-radius: 10px;
+        background: #e9ecef;
+        overflow: hidden;
+    }
+    
+    .progress-custom .progress-bar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+    
+    .step-item {
+        flex: 1;
+        text-align: center;
+        position: relative;
+    }
+    
+    .step-item::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #dee2e6;
+        z-index: -1;
+    }
+    
+    .step-item:first-child::before {
+        left: 50%;
+    }
+    
+    .step-item:last-child::before {
+        right: 50%;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #dee2e6;
+        color: #6c757d;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .step-item.active .step-circle {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .step-item.completed .step-circle {
+        background: #28a745;
+        color: white;
+    }
+    
+    .therapeutic-other-input {
+        display: none;
+        margin-top: 1rem;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Wizard Header -->
+    <div class="wizard-header">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb bg-transparent mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('home.index') }}" class="text-white">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('quality.main') }}" class="text-white">Quality</a>
+                </li>
+                <li class="breadcrumb-item text-white active">Trial Setup</li>
+            </ol>
+        </nav>
+        
+        <h2 class="mb-2">
+            <i class="bi bi-gear-fill"></i> Trial Quality Matrix - Setup
+        </h2>
+        <p class="lead mb-0">Step 1: Enter Trial Information</p>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator mb-4">
+        <div class="step-item active">
+            <div class="step-circle">1</div>
+            <div class="fw-bold">Trial Setup</div>
+            <small class="text-muted">Basic Information</small>
+        </div>
+        <div class="step-item">
+            <div class="step-circle">2</div>
+            <div class="fw-bold">Record Entry</div>
+            <small class="text-muted">Quality Records</small>
+        </div>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="alert alert-info shadow-sm">
+        <i class="bi bi-info-circle-fill"></i> 
+        <strong>Note:</strong> These details will be applied to all records you create in the next step.
+        You can add multiple records for the same trial.
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="wizard-card">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('quality.trial_setup') }}" id="trialSetupForm">
+                        <div class="row g-4">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="trial_id" class="form-label fw-bold">
+                                        <i class="bi bi-tag"></i> Trial ID 
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="trial_id" 
+                                           name="trial_id" 
+                                           placeholder="e.g., NN9499-8242" 
+                                           required
+                                           autocomplete="off">
+                                    <small class="form-text text-muted">
+                                        <i class="bi bi-info-circle"></i> Unique trial identifier
+                                    </small>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="phase" class="form-label fw-bold">
+                                        <i class="bi bi-layers"></i> Phase 
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select form-select-lg" id="phase" name="phase" required>
+                                        <option value="">-- Select Phase --</option>
+                                        <option value="Phase 1 & NIS">Phase 1 & NIS</option>
+                                        <option value="Phase 2">Phase 2</option>
+                                        <option value="Phase 3">Phase 3</option>
+                                        <option value="Other">Other (specify below)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-4" id="phase_other_div" style="display: none;">
+                                    <label for="phase_other" class="form-label fw-bold">
+                                        <i class="bi bi-pencil"></i> Specify Phase
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="phase_other" 
+                                           name="phase_other" 
+                                           placeholder="Enter custom phase details">
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="no_of_rounds" class="form-label fw-bold">
+                                        <i class="bi bi-arrow-repeat"></i> No. of Rounds 
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control form-control-lg" 
+                                           id="no_of_rounds" 
+                                           name="no_of_rounds" 
+                                           placeholder="e.g., 3" 
+                                           min="1" 
+                                           max="20"
+                                           required
+                                           autocomplete="off">
+                                    <small class="form-text text-muted">
+                                        <i class="bi bi-info-circle"></i> Total number of testing rounds planned
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="therapeutic_area" class="form-label fw-bold">
+                                        <i class="bi bi-heart-pulse"></i> Therapeutic Area 
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select form-select-lg" id="therapeutic_area" name="therapeutic_area" required>
+                                        <option value="">-- Select Therapeutic Area --</option>
+                                        <option value="Cardio-Metabolic">Cardio-Metabolic</option>
+                                        <option value="Rare Disease">Rare Disease</option>
+                                        <option value="Obesity">Obesity</option>
+                                        <option value="Haemophilia">Haemophilia</option>
+                                        <option value="Growth Disorders">Growth Disorders</option>
+                                        <option value="Others">Others (specify below)</option>
+                                    </select>
+                                    <small class="form-text text-muted">
+                                        <i class="bi bi-info-circle"></i> Select the therapeutic area for this trial
+                                    </small>
+                                </div>
+                                
+                                <div class="therapeutic-other-input" id="therapeutic_other_div">
+                                    <label for="therapeutic_area_other" class="form-label fw-bold">
+                                        <i class="bi bi-pencil"></i> Specify Therapeutic Area
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="therapeutic_area_other" 
+                                           name="therapeutic_area_other" 
+                                           placeholder="Enter therapeutic area details">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('quality.main') }}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            
+                            <div>
+                                <a href="{{ url_for('quality.clear_wizard') }}" class="btn btn-outline-danger me-2">
+                                    <i class="bi bi-trash"></i> Clear Wizard
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    Next: Record Details <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="row mt-4">
+        <div class="col-lg-10 mx-auto">
+            <div class="alert alert-light border shadow-sm">
+                <h5 class="alert-heading">
+                    <i class="bi bi-question-circle"></i> Need Help?
+                </h5>
+                <ul class="mb-0">
+                    <li><strong>Trial ID:</strong> Enter the unique identifier for your clinical trial</li>
+                    <li><strong>Phase:</strong> Select the current phase of the trial</li>
+                    <li><strong>Therapeutic Area:</strong> Select the medical/disease area this trial focuses on</li>
+                    <li><strong>Rounds:</strong> Enter the number of testing rounds planned for quality validation</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const phaseSelect = document.getElementById('phase');
+    const phaseOtherDiv = document.getElementById('phase_other_div');
+    const phaseOtherInput = document.getElementById('phase_other');
+    
+    const therapeuticSelect = document.getElementById('therapeutic_area');
+    const therapeuticOtherDiv = document.getElementById('therapeutic_other_div');
+    const therapeuticOtherInput = document.getElementById('therapeutic_area_other');
+    
+    // Show/hide "Other" phase input
+    phaseSelect.addEventListener('change', function() {
+        if (this.value === 'Other') {
+            phaseOtherDiv.style.display = 'block';
+            phaseOtherInput.required = true;
+        } else {
+            phaseOtherDiv.style.display = 'none';
+            phaseOtherInput.required = false;
+            phaseOtherInput.value = '';
+        }
+    });
+    
+    // Show/hide "Other" therapeutic area input
+    therapeuticSelect.addEventListener('change', function() {
+        if (this.value === 'Others') {
+            therapeuticOtherDiv.style.display = 'block';
+            therapeuticOtherInput.required = true;
+        } else {
+            therapeuticOtherDiv.style.display = 'none';
+            therapeuticOtherInput.required = false;
+            therapeuticOtherInput.value = '';
+        }
+    });
+    
+    // Form validation
+    const form = document.getElementById('trialSetupForm');
+    form.addEventListener('submit', function(e) {
+        const trialId = document.getElementById('trial_id').value.trim();
+        const rounds = parseInt(document.getElementById('no_of_rounds').value);
+        
+        if (!trialId) {
+            e.preventDefault();
+            alert('Trial ID is required');
+            document.getElementById('trial_id').focus();
+            return false;
+        }
+        
+        if (rounds < 1 || rounds > 20) {
+            e.preventDefault();
+            alert('Number of rounds must be between 1 and 20');
+            document.getElementById('no_of_rounds').focus();
+            return false;
+        }
+        
+        if (phaseSelect.value === 'Other' && !phaseOtherInput.value.trim()) {
+            e.preventDefault();
+            alert('Please specify the phase details');
+            phaseOtherInput.focus();
+            return false;
+        }
+        
+        if (therapeuticSelect.value === 'Others' && !therapeuticOtherInput.value.trim()) {
+            e.preventDefault();
+            alert('Please specify the therapeutic area details');
+            therapeuticOtherInput.focus();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

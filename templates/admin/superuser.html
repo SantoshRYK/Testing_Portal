@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Superuser Panel - TestingHub Portal{% endblock %}
+
+{% block content %}
+<style>
+    .admin-hero {
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        border-radius: 15px;
+        padding: 3rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(220, 38, 38, 0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .admin-hero h1 {
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    
+    .menu-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .menu-btn {
+        margin: 0.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    .pending-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .user-expander {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    
+    .user-expander-header {
+        background: #f9fafb;
+        padding: 1rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .user-expander-header:hover {
+        background: #f3f4f6;
+    }
+    
+    .user-expander-body {
+        padding: 1.5rem;
+        display: none;
+    }
+    
+    .user-expander.active .user-expander-body {
+        display: block;
+    }
+    
+    .badge-role {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Hero Section -->
+    <div class="admin-hero">
+        <h1><i class="bi bi-shield-lock"></i> Superuser Control Panel</h1>
+        <p class="lead mb-0">Full system administration and user management</p>
+        <p class="mb-0"><small>Logged in as: {{ user.username }}</small></p>
+    </div>
+    
+    <!-- Menu Selection -->
+    <div class="menu-card">
+        <h5 class="mb-3"><i class="bi bi-list"></i> Select Action</h5>
+        <div class="d-flex flex-wrap">
+            <a href="{{ url_for('admin.superuser', action='pending_approvals') }}" 
+               class="btn btn-{{ 'primary' if action == 'pending_approvals' else 'outline-primary' }} menu-btn">
+                <i class="bi bi-clock"></i> Pending Approvals 
+                {% if pending_count.users > 0 %}
+                <span class="badge bg-danger">{{ pending_count.users }}</span>
+                {% endif %}
+            </a>
+            
+            <a href="{{ url_for('admin.superuser', action='audit_reviewers') }}" 
+               class="btn btn-{{ 'info' if action == 'audit_reviewers' else 'outline-info' }} menu-btn">
+                <i class="bi bi-eye"></i> Audit Reviewer Requests
+                {% if pending_count.reviewers > 0 %}
+                <span class="badge bg-danger">{{ pending_count.reviewers }}</span>
+                {% endif %}
+            </a>
+            
+            <a href="{{ url_for('admin.superuser', action='password_resets') }}" 
+               class="btn btn-{{ 'warning' if action == 'password_resets' else 'outline-warning' }} menu-btn">
+                <i class="bi bi-key"></i> Password Reset Requests
+                {% if pending_count.resets > 0 %}
+                <span class="badge bg-danger">{{ pending_count.resets }}</span>
+                {% endif %}
+            </a>
+            
+            <a href="{{ url_for('admin.superuser', action='add_user') }}" 
+               class="btn btn-{{ 'success' if action == 'add_user' else 'outline-success' }} menu-btn">
+                <i class="bi bi-person-plus"></i> Add User Directly
+            </a>
+            
+            <a href="{{ url_for('admin.superuser', action='view_users') }}" 
+               class="btn btn-{{ 'secondary' if action == 'view_users' else 'outline-secondary' }} menu-btn">
+                <i class="bi bi-people"></i> View All Users
+            </a>
+            
+            <a href="{{ url_for('admin.superuser', action='manage_users') }}" 
+               class="btn btn-{{ 'dark' if action == 'manage_users' else 'outline-dark' }} menu-btn">
+                <i class="bi bi-gear"></i> Manage Users
+            </a>
+            
+            <a href="{{ url_for('admin.superuser', action='delete_user') }}" 
+               class="btn btn-{{ 'danger' if action == 'delete_user' else 'outline-danger' }} menu-btn">
+                <i class="bi bi-trash"></i> Delete User
+            </a>
+        </div>
+    </div>
+    
+    <!-- Content Based on Action -->
+    
+    {% if action == 'pending_approvals' %}
+        {% include 'admin/partials/pending_approvals.html' %}
+    {% elif action == 'audit_reviewers' %}
+        {% include 'admin/partials/audit_reviewers.html' %}
+    {% elif action == 'password_resets' %}
+        {% include 'admin/partials/password_resets.html' %}
+    {% elif action == 'add_user' %}
+        {% include 'admin/partials/add_user.html' %}
+    {% elif action == 'view_users' %}
+        {% include 'admin/partials/view_users.html' %}
+    {% elif action == 'manage_users' %}
+        {% include 'admin/partials/manage_users.html' %}
+    {% elif action == 'delete_user' %}
+        {% include 'admin/partials/delete_user.html' %}
+    {% endif %}
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle expandable sections
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.user-expander-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const parent = this.closest('.user-expander');
+            parent.classList.toggle('active');
+        });
+    });
+});
+</script>
+{% endblock %}

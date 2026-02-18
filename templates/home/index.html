@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - TestingHub Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: #667eea !important;
+        }
+        
+        .container-fluid {
+            padding: 2rem;
+        }
+        
+        .welcome-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-card h1 {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .user-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .module-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            text-align: center;
+            height: 100%;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            cursor: pointer;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+            text-decoration: none;
+        }
+        
+        .module-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            position: relative;
+        }
+        
+        .module-card.disabled:hover {
+            transform: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .module-card.disabled::after {
+            content: 'Coming Soon';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #fbbf24;
+            color: #78350f;
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        
+        .module-card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .module-card h3 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+        
+        .module-card p {
+            color: #718096;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('home.index') }}">
+                <i class="bi bi-shield-check"></i> TestingHub Portal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span class="navbar-text me-3">
+                            <i class="bi bi-person-circle"></i> {{ user.username }}
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Welcome Card -->
+        <div class="welcome-card">
+            <h1><i class="bi bi-house-heart"></i> Welcome Back!</h1>
+            <p class="lead mb-3">Hello, <strong>{{ user.username }}</strong></p>
+            <span class="user-badge">
+                <i class="bi bi-shield-fill"></i> {{ user.role|upper }}
+            </span>
+            {% if user.is_audit_reviewer %}
+                <span class="user-badge ms-2">
+                    <i class="bi bi-eye-fill"></i> AUDIT REVIEWER
+                </span>
+            {% endif %}
+        </div>
+
+        <!-- Module Cards -->
+        <div class="row g-4">
+            <!-- Allocation Module - ✅ WORKING -->
+            {% if user.role in ['superuser', 'admin', 'manager', 'user'] %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('allocations.list_view') }}" class="module-card">
+                    <i class="bi bi-calendar-check"></i>
+                    <h3>Allocations</h3>
+                    <p>Manage test engineer allocations</p>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- UAT Module - ✅ WORKING -->
+            {% if user.role in ['superuser', 'admin', 'manager', 'user'] %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('uat.main') }}" class="module-card">
+                    <i class="bi bi-clipboard-check"></i>
+                    <h3>UAT Status</h3>
+                    <p>Track user acceptance testing</p>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Trail Audit Module - ✅ WORKING -->
+            {% if user.role in ['superuser', 'admin', 'manager', 'user'] %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('audit.trail_documents') }}" class="module-card">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <h3>Trail Audit</h3>
+                    <p>Manage trail audit documents</p>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Quality Module - ✅ WORKING -->
+            {% if user.role in ['superuser', 'admin', 'manager', 'user'] %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('quality.main') }}" class="module-card">
+                    <i class="bi bi-bar-chart"></i>
+                    <h3>Quality Matrix</h3>
+                    <p>Quality management tracking</p>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Change Request Tracker - ✅ WORKING -->
+            {% if user.role in ['superuser', 'admin', 'manager', 'cdp', 'user'] %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('change_request.main') }}" class="module-card">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <h3>Change Requests</h3>
+                    <p>Track change request tickets</p>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- User Management - ✅ NOW WORKING FOR SUPERUSER/ADMIN -->
+            {% if user.role in ['superuser', 'admin'] %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('admin.superuser') if user.role == 'superuser' else url_for('admin.admin_user') }}" class="module-card">
+                    <i class="bi bi-people"></i>
+                    <h3>User Management</h3>
+                    <p>Manage users and permissions</p>
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Settings - ✅ NOW WORKING FOR SUPERUSER -->
+            {% if user.role == 'superuser' %}
+            <div class="col-md-6 col-lg-3">
+                <a href="{{ url_for('admin.email_settings') }}" class="module-card">
+                    <i class="bi bi-gear"></i>
+                    <h3>Settings</h3>
+                    <p>System configuration</p>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Info Box -->
+        <div class="welcome-card mt-4">
+            <h5><i class="bi bi-info-circle"></i> System Information</h5>
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <p><strong>Your Role:</strong> {{ user.role|upper }}</p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Login Time:</strong> {{ session.login_time[:19] if session.login_time else 'N/A' }}</p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Email:</strong> {{ user.email or 'N/A' }}</p>
+                </div>
+                <div class="col-md-3">
+                    <p><strong>Status:</strong> 
+                        <span class="badge bg-success">Active</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

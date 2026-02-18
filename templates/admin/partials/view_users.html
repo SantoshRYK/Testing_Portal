@@ -1,0 +1,144 @@
+<div class="pending-card">
+    <h4><i class="bi bi-people"></i> All Users</h4>
+    <hr>
+    
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="text-center">
+                <h3 class="text-primary">{{ stats.total }}</h3>
+                <small>Total Users</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="text-center">
+                <h3 class="text-success">{{ stats.by_role.user or 0 }}</h3>
+                <small>Users</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="text-center">
+                <h3 class="text-info">{{ stats.by_role.admin or 0 }}</h3>
+                <small>Admins</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="text-center">
+                <h3 class="text-warning">{{ stats.by_role.manager or 0 }}</h3>
+                <small>Managers</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="text-center">
+                <h3 class="text-secondary">{{ stats.by_role.cdp or 0 }}</h3>
+                <small>CDP</small>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="text-center">
+                <h3 class="text-primary">{{ stats.audit_reviewers }}</h3>
+                <small>🔍 Reviewers</small>
+            </div>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <!-- Filters -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label class="form-label">Filter by Role:</label>
+            <select class="form-select" id="roleFilter" onchange="filterUsers()">
+                <option value="All">All Roles</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+                <option value="superuser">Superuser</option>
+                <option value="cdp">CDP</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Filter by Audit Reviewer:</label>
+            <select class="form-select" id="reviewerFilter" onchange="filterUsers()">
+                <option value="All">All Users</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- User List -->
+    <div id="userList">
+        {% for username, details in all_users.items() %}
+        <div class="user-expander" data-role="{{ details.role }}" data-reviewer="{{ 'Yes' if details.is_audit_reviewer else 'No' }}">
+            <div class="user-expander-header">
+                <div>
+                    {% if details.role == 'superuser' %}👑
+                    {% elif details.role == 'manager' %}👨‍💼
+                    {% elif details.role == 'admin' %}🔧
+                    {% elif details.role == 'cdp' %}📊
+                    {% else %}👤{% endif %}
+                    <strong>{{ username }}</strong>
+                    <span class="badge bg-secondary">{{ details.role|upper }}</span>
+                    {% if details.is_audit_reviewer %}
+                        <span class="badge bg-warning">🔍 Reviewer</span>
+                    {% endif %}
+                </div>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="user-expander-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Email:</strong> {{ details.email or 'N/A' }}</p>
+                        <p><strong>Role:</strong> {{ details.role or 'N/A' }}</p>
+                        <p><strong>Status:</strong> {{ details.status or 'active' }}</p>
+                        <p><strong>Created:</strong> {{ details.created_at or 'N/A' }}</p>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        {% if details.approved_by %}
+                        <p><strong>Approved By:</strong> {{ details.approved_by }}</p>
+                        {% endif %}
+                        {% if details.password_reset_at %}
+                        <p><strong>Last Password Reset:</strong> {{ details.password_reset_at }}</p>
+                        {% endif %}
+                        
+                        {% if details.is_audit_reviewer %}
+                        <div class="alert alert-success">
+                            <strong>🔍 Audit Reviewer</strong><br>
+                            <small>Approved By: {{ details.audit_reviewer_approved_by or 'N/A' }}</small><br>
+                            <small>Approved At: {{ details.audit_reviewer_approved_at or 'N/A' }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function filterUsers() {
+    const roleFilter = document.getElementById('roleFilter').value;
+    const reviewerFilter = document.getElementById('reviewerFilter').value;
+    const users = document.querySelectorAll('.user-expander');
+    
+    users.forEach(user => {
+        const userRole = user.getAttribute('data-role');
+        const userReviewer = user.getAttribute('data-reviewer');
+        
+        let showUser = true;
+        
+        if (roleFilter !== 'All' && userRole !== roleFilter) {
+            showUser = false;
+        }
+        
+        if (reviewerFilter !== 'All' && userReviewer !== reviewerFilter) {
+            showUser = false;
+        }
+        
+        user.style.display = showUser ? 'block' : 'none';
+    });
+}
+</script>

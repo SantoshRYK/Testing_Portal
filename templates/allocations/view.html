@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Allocation - TestingHub Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .view-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .view-header {
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .view-header h2 {
+            color: #667eea;
+            font-weight: 700;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-row {
+            display: flex;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #334155;
+            min-width: 200px;
+        }
+        
+        .info-value {
+            color: #64748b;
+        }
+        
+        .activity-box {
+            background: #f8fafc;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+        
+        .badge-build {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+        
+        .badge-cr {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('home.index') }}">
+                <i class="bi bi-shield-check"></i> TestingHub Portal
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('allocations.list_view') }}">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <span class="navbar-text mx-3">
+                    <i class="bi bi-person-circle"></i> {{ user.username }}
+                </span>
+                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="view-container">
+        <!-- Header -->
+        <div class="view-header">
+            <h2><i class="bi bi-file-earmark-text"></i> Allocation Details</h2>
+            <p class="text-muted mb-0">Complete information about this allocation</p>
+        </div>
+
+        <!-- Allocation Info -->
+        <div class="info-section">
+            <h5 class="mb-3"><i class="bi bi-info-circle"></i> Basic Information</h5>
+            
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-card-text"></i> Trial ID:</div>
+                <div class="info-value"><strong>{{ allocation.trial_id }}</strong></div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-person"></i> Test Engineer:</div>
+                <div class="info-value">{{ allocation.test_engineer_name }}</div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-laptop"></i> System:</div>
+                <div class="info-value">{{ allocation.system }}</div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-folder"></i> Trial Category:</div>
+                <div class="info-value">
+                    {% if allocation.trial_category_type == 'Build' or allocation.trial_category == 'Build' %}
+                        <span class="badge-build">{{ allocation.trial_category }}</span>
+                    {% else %}
+                        <span class="badge-cr">{{ allocation.trial_category }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-heart-pulse"></i> Therapeutic Area:</div>
+                <div class="info-value">{{ allocation.therapeutic_area }}</div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-award"></i> Role:</div>
+                <div class="info-value">{{ allocation.role }}</div>
+            </div>
+        </div>
+
+        <!-- Date Info -->
+        <div class="info-section">
+            <h5 class="mb-3"><i class="bi bi-calendar-event"></i> Timeline</h5>
+            
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-calendar-check"></i> Start Date:</div>
+                <div class="info-value">{{ allocation.start_date }}</div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-calendar-x"></i> End Date:</div>
+                <div class="info-value">{{ allocation.end_date }}</div>
+            </div>
+            
+            {% if allocation.created_at %}
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-clock-history"></i> Created At:</div>
+                <div class="info-value">{{ allocation.created_at }}</div>
+            </div>
+            {% endif %}
+            
+            {% if allocation.created_by %}
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-person-check"></i> Created By:</div>
+                <div class="info-value">{{ allocation.created_by }}</div>
+            </div>
+            {% endif %}
+            
+            {% if allocation.updated_at %}
+            <div class="info-row">
+                <div class="info-label"><i class="bi bi-pencil-square"></i> Last Updated:</div>
+                <div class="info-value">{{ allocation.updated_at }} by {{ allocation.updated_by }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Activity -->
+        <div class="activity-box">
+            <h5 class="mb-3"><i class="bi bi-card-list"></i> Activity Details</h5>
+            <p class="mb-0">{{ allocation.activity }}</p>
+        </div>
+
+        <!-- ID -->
+        <p class="text-muted mt-3 mb-4">
+            <small><i class="bi bi-fingerprint"></i> Allocation ID: {{ allocation.id }}</small>
+        </p>
+
+        <!-- Action Buttons -->
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{{ url_for('allocations.list_view') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+            
+            {% if user.role != 'manager' %}
+                {% if user.role in ['superuser', 'admin'] or allocation.created_by == user.username %}
+                <div class="col-md-4">
+                    <a href="{{ url_for('allocations.edit', allocation_id=allocation.id) }}" 
+                       class="btn btn-warning w-100">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-danger w-100" 
+                            onclick="confirmDelete('{{ allocation.id }}', '{{ allocation.trial_id }}')">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete allocation <strong id="deleteTrialId"></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" id="deleteForm" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function confirmDelete(allocationId, trialId) {
+            document.getElementById('deleteTrialId').textContent = trialId;
+            document.getElementById('deleteForm').action = '/allocations/delete/' + allocationId;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+    </script>
+</body>
+</html>

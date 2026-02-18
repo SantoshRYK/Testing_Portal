@@ -1,0 +1,87 @@
+<div class="pending-card">
+    <h4><i class="bi bi-clock"></i> Pending User Approvals</h4>
+    <hr>
+    
+    {% if pending_users %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> {{ pending_users|length }} user(s) waiting for approval
+        </div>
+        
+        {% for pending in pending_users %}
+        <div class="user-expander">
+            <div class="user-expander-header">
+                <div>
+                    <strong>
+                        {% if pending.requested_role == 'cdp' %}📊{% else %}👤{% endif %}
+                        {{ pending.username }}
+                    </strong>
+                    {% if pending.audit_reviewer_requested %}
+                        <span class="badge bg-warning">🔍 +Audit Reviewer</span>
+                    {% endif %}
+                    <span class="badge bg-secondary">{{ pending.requested_role|upper }}</span>
+                </div>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="user-expander-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Username:</strong> {{ pending.username }}</p>
+                        <p><strong>Email:</strong> {{ pending.email }}</p>
+                        <p><strong>Requested Role:</strong> 
+                            <span class="badge-role bg-{{ 'info' if pending.requested_role == 'cdp' else 'primary' }}">
+                                {{ pending.requested_role|upper }}
+                            </span>
+                        </p>
+                        <p><strong>Requested At:</strong> {{ pending.requested_at }}</p>
+                        <p><strong>Status:</strong> {{ pending.status }}</p>
+                        
+                        {% if pending.requested_role == 'cdp' %}
+                        <div class="alert alert-warning mt-2">
+                            ⚠️ <strong>CDP Role:</strong> This user will ONLY have access to Change Request Tracker
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        {% if pending.audit_reviewer_requested %}
+                        <div class="alert alert-warning">
+                            <strong>🔍 Also Requested Audit Reviewer Access</strong>
+                            <hr>
+                            <strong>Justification:</strong>
+                            <p class="mb-0">{{ pending.audit_reviewer_justification or 'No justification provided' }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <form method="POST" class="mt-3">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Approve as Role:</strong></label>
+                                <select name="approved_role" class="form-select">
+                                    <option value="user" {% if pending.requested_role == 'user' %}selected{% endif %}>👤 User</option>
+                                    <option value="admin" {% if pending.requested_role == 'admin' %}selected{% endif %}>🔧 Admin</option>
+                                    <option value="manager" {% if pending.requested_role == 'manager' %}selected{% endif %}>👨‍💼 Manager</option>
+                                    <option value="cdp" {% if pending.requested_role == 'cdp' %}selected{% endif %}>📊 CDP</option>
+                                </select>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" formaction="{{ url_for('admin.approve_user', username=pending.username) }}" 
+                                        class="btn btn-success flex-fill">
+                                    <i class="bi bi-check-circle"></i> Approve
+                                </button>
+                                <button type="submit" formaction="{{ url_for('admin.reject_user', username=pending.username) }}" 
+                                        class="btn btn-danger flex-fill">
+                                    <i class="bi bi-x-circle"></i> Reject
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle"></i> No pending approvals
+        </div>
+    {% endif %}
+</div>

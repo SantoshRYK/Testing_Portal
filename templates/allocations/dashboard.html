@@ -1,0 +1,729 @@
+{% extends "base.html" %}
+{% block title %}Analytics Dashboard - Test Engineer Allocation{% endblock %}
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 2.5rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        margin-bottom: 2rem;
+    }
+    
+    .dashboard-header h1 {
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    }
+    
+    .metric-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .metric-card .value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .metric-card .label {
+        color: #718096;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+    }
+    
+    .filter-section {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .filter-section h5 {
+        color: #1e293b;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+        height: 100%;
+    }
+    
+    .chart-header {
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chart-header h6 {
+        color: #1e293b;
+        font-weight: 700;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    .efficiency-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .efficiency-high {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+    }
+    
+    .efficiency-medium {
+        background: linear-gradient(135deg, #ffd89b 0%, #f59e0b 100%);
+        color: white;
+    }
+    
+    .efficiency-low {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        color: white;
+    }
+</style>
+<div class="container-fluid mt-4">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h1><i class="bi bi-bar-chart-line"></i> Analytics Dashboard</h1>
+        <p class="mb-0">
+            {% if user.role == 'manager' %}
+                <i class="bi bi-briefcase"></i> Manager View: Comprehensive allocation analytics and insights
+            {% else %}
+                <i class="bi bi-shield-check"></i> Admin View: Complete system analytics
+            {% endif %}
+        </p>
+    </div>
+    <!-- Overview Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="icon">📊</div>
+                <div class="value">{{ stats.total }}</div>
+                <div class="label">Total Allocations</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="icon">🏗️</div>
+                <div class="value">{{ stats.build }}</div>
+                <div class="label">Build Projects</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="icon">🔄</div>
+                <div class="value">{{ stats.change_request }}</div>
+                <div class="label">Change Requests</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="metric-card">
+                <div class="icon">💻</div>
+                <div class="value">{{ stats.systems }}</div>
+                <div class="label">Unique Systems</div>
+            </div>
+        </div>
+    </div>
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <h5><i class="bi bi-funnel"></i> Filter Allocations</h5>
+        <form method="GET" action="{{ url_for('allocations.dashboard') }}" id="filterForm">
+            <div class="row g-3">
+                <!-- Filter by System -->
+                <div class="col-md-3">
+                    <label for="system" class="form-label">Filter by System</label>
+                    <select class="form-select" name="system" id="system">
+                        <option value="">All</option>
+                        {% for system in systems %}
+                        <option value="{{ system }}" {% if current_filters.system == system %}selected{% endif %}>
+                            {{ system }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Filter by Trial Category -->
+                <div class="col-md-3">
+                    <label for="trial_category" class="form-label">Filter by Trial Category</label>
+                    <select class="form-select" name="trial_category" id="trial_category">
+                        <option value="">All</option>
+                        {% for category in categories %}
+                        <option value="{{ category }}" {% if current_filters.trial_category == category %}selected{% endif %}>
+                            {{ category }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Filter by Therapeutic Area -->
+                <div class="col-md-3">
+                    <label for="therapeutic_area" class="form-label">Filter by Therapeutic Area</label>
+                    <select class="form-select" name="therapeutic_area" id="therapeutic_area">
+                        <option value="">All</option>
+                        {% for area in therapeutic_areas %}
+                        <option value="{{ area }}" {% if current_filters.therapeutic_area == area %}selected{% endif %}>
+                            {{ area }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Filter by Test Engineer -->
+                <div class="col-md-3">
+                    <label for="test_engineer" class="form-label">Filter by Test Engineer</label>
+                    <select class="form-select" name="test_engineer" id="test_engineer">
+                        <option value="">All</option>
+                        {% for engineer in test_engineers %}
+                        <option value="{{ engineer }}" {% if current_filters.test_engineer == engineer %}selected{% endif %}>
+                            {{ engineer }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row g-3 mt-2">
+                <!-- Filter by Role -->
+                <div class="col-md-4">
+                    <label for="role" class="form-label">Filter by Role</label>
+                    <select class="form-select" name="role" id="role">
+                        <option value="">All</option>
+                        {% for role in roles %}
+                        <option value="{{ role }}" {% if current_filters.role == role %}selected{% endif %}>
+                            {{ role }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Filter by Trial ID -->
+                <div class="col-md-4">
+                    <label for="trial_id" class="form-label">Filter by Trial ID</label>
+                    <input type="text" class="form-control" name="trial_id" id="trial_id" 
+                           value="{{ current_filters.trial_id }}" placeholder="Enter Trial ID">
+                </div>
+                <!-- Filter by Created By -->
+                <div class="col-md-4">
+                    <label for="created_by" class="form-label">Filter by Created By</label>
+                    <select class="form-select" name="created_by" id="created_by">
+                        <option value="">All</option>
+                        {% for creator in created_by_users %}
+                        <option value="{{ creator }}" {% if current_filters.created_by == creator %}selected{% endif %}>
+                            {{ creator }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <!-- Date Range Filter -->
+            <div class="row g-3 mt-2">
+                <div class="col-md-12">
+                    <label class="form-label"><strong>Date Range Filter:</strong></label>
+                </div>
+                <div class="col-md-5">
+                    <label for="start_date" class="form-label">From Start Date</label>
+                    <input type="date" class="form-control" name="start_date" id="start_date" 
+                           value="{{ current_filters.start_date }}">
+                </div>
+                <div class="col-md-5">
+                    <label for="end_date" class="form-label">To End Date</label>
+                    <input type="date" class="form-control" name="end_date" id="end_date" 
+                           value="{{ current_filters.end_date }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-secondary w-100" onclick="resetFilters()">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-funnel"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- Charts - Compact 4-Column Layout with Modal Expansion -->
+    <div class="row g-3 mb-4">
+        <!-- Chart 1: System Distribution -->
+        <div class="col-md-3">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h6><i class="bi bi-laptop"></i> System Distribution</h6>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#chartModal1">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+                <canvas id="systemChart" height="200"></canvas>
+            </div>
+        </div>
+        <!-- Chart 2: Category Distribution -->
+        <div class="col-md-3">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h6><i class="bi bi-folder"></i> Category Distribution</h6>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#chartModal2">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+                <canvas id="categoryChart" height="200"></canvas>
+            </div>
+        </div>
+        <!-- Chart 3: Therapeutic Area -->
+        <div class="col-md-3">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h6><i class="bi bi-heart-pulse"></i> Therapeutic Area</h6>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#chartModal3">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+                <canvas id="therapeuticChart" height="200"></canvas>
+            </div>
+        </div>
+        <!-- Chart 4: Engineer Workload -->
+        <div class="col-md-3">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h6><i class="bi bi-people"></i> Engineer Workload</h6>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#chartModal4">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                </div>
+                <canvas id="engineerChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Modals for Enlarged Charts -->
+    <!-- Modal 1: System Distribution -->
+    <div class="modal fade" id="chartModal1" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-laptop"></i> System Distribution
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="systemChartLarge" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal 2: Category Distribution -->
+    <div class="modal fade" id="chartModal2" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-folder"></i> Category Distribution
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="categoryChartLarge" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal 3: Therapeutic Area -->
+    <div class="modal fade" id="chartModal3" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-heart-pulse"></i> Therapeutic Area Distribution
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="therapeuticChartLarge" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal 4: Engineer Workload -->
+    <div class="modal fade" id="chartModal4" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-people"></i> Engineer Workload
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="engineerChartLarge" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Monthly Trend Chart (Full Width) -->
+    <div class="chart-container mb-4">
+        <div class="chart-header">
+            <h6><i class="bi bi-calendar3"></i> Monthly Allocation Trend</h6>
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#chartModal5">
+                <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+        </div>
+        <canvas id="monthlyChart" height="100"></canvas>
+    </div>
+    <!-- Modal 5: Monthly Trend -->
+    <div class="modal fade" id="chartModal5" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-calendar3"></i> Monthly Allocation Trend
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <canvas id="monthlyChartLarge" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Engineer Efficiency Table -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h6><i class="bi bi-speedometer2"></i> Engineer Efficiency Metrics</h6>
+        </div>
+        <p class="text-muted mb-3 small">Performance comparison across test engineers</p>
+        
+        {% if efficiency_data %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Engineer</th>
+                        <th>Total Allocations</th>
+                        <th>Unique Trials</th>
+                        <th>Total Days</th>
+                        <th>Build</th>
+                        <th>Change Requests</th>
+                        <th>Avg Days/Allocation</th>
+                        <th>Efficiency Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for eng in efficiency_data %}
+                    <tr>
+                        <td><strong>{{ eng.engineer }}</strong></td>
+                        <td>{{ eng.total_allocations }}</td>
+                        <td>{{ eng.unique_trials }}</td>
+                        <td>{{ eng.total_days }}</td>
+                        <td>{{ eng.build_count }}</td>
+                        <td>{{ eng.change_request_count }}</td>
+                        <td>{{ eng.avg_days_per_allocation }}</td>
+                        <td>
+                            {% if eng.efficiency_score >= 50 %}
+                                <span class="efficiency-badge efficiency-high">{{ eng.efficiency_score }}</span>
+                            {% elif eng.efficiency_score >= 25 %}
+                                <span class="efficiency-badge efficiency-medium">{{ eng.efficiency_score }}</span>
+                            {% else %}
+                                <span class="efficiency-badge efficiency-low">{{ eng.efficiency_score }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No efficiency data available
+        </div>
+        {% endif %}
+    </div>
+    <!-- Filtered Allocations Table -->
+    <div class="chart-container mt-4">
+        <div class="chart-header">
+            <h6><i class="bi bi-table"></i> Filtered Allocations ({{ allocations|length }} records)</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Trial ID</th>
+                        <th>Test Engineer</th>
+                        <th>System</th>
+                        <th>Category</th>
+                        <th>Role</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for allocation in allocations %}
+                    <tr>
+                        <td>{{ allocation.trial_id }}</td>
+                        <td>{{ allocation.test_engineer_name }}</td>
+                        <td><span class="badge bg-info">{{ allocation.system }}</span></td>
+                        <td>{{ allocation.trial_category }}</td>
+                        <td>{{ allocation.role }}</td>
+                        <td>{{ allocation.start_date }}</td>
+                        <td>{{ allocation.end_date }}</td>
+                        <td>
+                            <a href="{{ url_for('allocations.view', allocation_id=allocation._id) }}" 
+                               class="btn btn-sm btn-primary">View</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center">No allocations found matching the filters</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Export Button -->
+    <div class="text-center mt-4 mb-4">
+        <a href="{{ url_for('allocations.export_excel') }}" class="btn btn-success btn-lg">
+            <i class="bi bi-download"></i> Export to Excel
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+    
+    // ⭐ Register DataLabels plugin globally
+    if (typeof ChartDataLabels !== 'undefined') {
+        Chart.register(ChartDataLabels);
+    }
+    
+    function resetFilters() {
+        window.location.href = "{{ url_for('allocations.dashboard') }}";
+    }
+    
+    // Get current URL parameters for chart data
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParams = urlParams.toString();
+    
+    // Color schemes
+    const gradientColors = {
+        primary: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'],
+        success: ['#43e97b', '#38f9d7', '#7bed9f', '#70a1ff'],
+        warning: ['#ffd89b', '#f59e0b', '#ffc107', '#ff9800'],
+        info: ['#4facfe', '#00f2fe', '#2196f3', '#03a9f4']
+    };
+    
+    // Store chart instances
+    const chartInstances = {};
+    
+    // Function to create chart with modal support and datalabels for pie/doughnut
+    function createChartPair(smallId, largeId, modalId, fetchUrl, chartConfig) {
+        fetch(fetchUrl)
+            .then(response => response.json())
+            .then(data => {
+                // Update config with data
+                const config = JSON.parse(JSON.stringify(chartConfig));
+                if (config.type === 'bar' || config.type === 'line') {
+                    config.data.labels = data.labels;
+                    config.data.datasets[0].data = data.values;
+                } else {
+                    config.data.labels = data.labels;
+                    config.data.datasets[0].data = data.values;
+                }
+                
+                // Add datalabels for pie/doughnut charts
+                if (config.type === 'pie' || config.type === 'doughnut') {
+                    config.options.plugins.datalabels = {
+                        display: true,
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 11
+                        },
+                        formatter: function(value, context) {
+                            return value;
+                        }
+                    };
+                    config.plugins = [ChartDataLabels];
+                } else {
+                    // Disable datalabels for bar/line charts
+                    config.options.plugins.datalabels = { display: false };
+                }
+                
+                // Create small chart
+                chartInstances[smallId] = new Chart(document.getElementById(smallId), config);
+                
+                // Create large chart when modal opens
+                $(`#${modalId}`).on('shown.bs.modal', function() {
+                    if (!chartInstances[largeId]) {
+                        const largeConfig = JSON.parse(JSON.stringify(config));
+                        if (largeConfig.options.indexAxis) delete largeConfig.options.indexAxis;
+                        
+                        // Update datalabels font size for large charts
+                        if (largeConfig.type === 'pie' || largeConfig.type === 'doughnut') {
+                            largeConfig.options.plugins.datalabels.font.size = 16;
+                            largeConfig.plugins = [ChartDataLabels];
+                        }
+                        
+                        chartInstances[largeId] = new Chart(document.getElementById(largeId), largeConfig);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error(`Error loading chart ${smallId}:`, error);
+            });
+    }
+    
+    // System Chart (Bar)
+    createChartPair(
+        'systemChart',
+        'systemChartLarge',
+        'chartModal1',
+        `{{ url_for('allocations.api_chart_data', chart_type='system') }}?${filterParams}`,
+        {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Allocations', data: [], backgroundColor: gradientColors.primary, borderWidth: 2 }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: true, 
+                plugins: { 
+                    legend: { display: false }
+                } 
+            }
+        }
+    );
+    
+    // Category Chart (Pie with labels inside)
+    createChartPair(
+        'categoryChart',
+        'categoryChartLarge',
+        'chartModal2',
+        `{{ url_for('allocations.api_chart_data', chart_type='category') }}?${filterParams}`,
+        {
+            type: 'pie',
+            data: { labels: [], datasets: [{ data: [], backgroundColor: gradientColors.primary, borderWidth: 2, borderColor: '#fff' }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: true, 
+                plugins: { 
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { font: { size: 9 }, padding: 8 } 
+                    }
+                } 
+            }
+        }
+    );
+    
+    // Therapeutic Area Chart (Doughnut with labels inside)
+    createChartPair(
+        'therapeuticChart',
+        'therapeuticChartLarge',
+        'chartModal3',
+        `{{ url_for('allocations.api_chart_data', chart_type='therapeutic_area') }}?${filterParams}`,
+        {
+            type: 'doughnut',
+            data: { labels: [], datasets: [{ data: [], backgroundColor: gradientColors.success, borderWidth: 2, borderColor: '#fff' }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: true, 
+                plugins: { 
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { font: { size: 9 }, padding: 8 } 
+                    }
+                } 
+            }
+        }
+    );
+    
+    // Engineer Workload Chart (Bar)
+    createChartPair(
+        'engineerChart',
+        'engineerChartLarge',
+        'chartModal4',
+        `{{ url_for('allocations.api_chart_data', chart_type='engineer_workload') }}?${filterParams}`,
+        {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Allocations', data: [], backgroundColor: gradientColors.info, borderWidth: 2 }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: true, 
+                indexAxis: 'y', 
+                plugins: { 
+                    legend: { display: false }
+                }, 
+                scales: { 
+                    x: { ticks: { font: { size: 9 } } }, 
+                    y: { ticks: { font: { size: 8 } } } 
+                } 
+            }
+        }
+    );
+    
+    // Monthly Trend Chart (Line)
+    createChartPair(
+        'monthlyChart',
+        'monthlyChartLarge',
+        'chartModal5',
+        `{{ url_for('allocations.api_chart_data', chart_type='monthly') }}?${filterParams}`,
+        {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Allocations', data: [], borderColor: '#667eea', backgroundColor: 'rgba(102, 126, 234, 0.1)', borderWidth: 3, fill: true, tension: 0.4 }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: true, 
+                plugins: { 
+                    legend: { display: false }
+                }, 
+                scales: { 
+                    y: { ticks: { font: { size: 9 } } }, 
+                    x: { ticks: { font: { size: 8 } } } 
+                } 
+            }
+        }
+    );
+    
+    // Make resetFilters available globally
+    window.resetFilters = resetFilters;
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}Create Quality Record - TestingHub Portal{% endblock %}
+
+{% block content %}
+<style>
+    .create-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 3rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .create-hero h1 {
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+    
+    .wizard-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .wizard-steps {
+        display: flex;
+        justify-content: space-around;
+        margin: 2rem 0;
+    }
+    
+    .wizard-step {
+        flex: 1;
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .wizard-step-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .wizard-step h5 {
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    .wizard-step p {
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+    
+    .recent-records-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .btn-start-wizard {
+        font-size: 1.25rem;
+        padding: 1rem 3rem;
+        border-radius: 50px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 12px rgba(67, 233, 123, 0.4);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-start-wizard:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(67, 233, 123, 0.6);
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Hero Section -->
+    <div class="create-hero">
+        <h1><i class="bi bi-stars"></i> Quality Record Creation Wizard</h1>
+        <p class="lead mb-0">Create comprehensive quality records with our step-by-step wizard</p>
+    </div>
+    
+    <!-- Wizard Overview Card -->
+    <div class="wizard-card">
+        <h3 class="mb-4"><i class="bi bi-diagram-3"></i> How It Works</h3>
+        
+        <div class="wizard-steps">
+            <!-- Step 1 -->
+            <div class="wizard-step">
+                <div class="wizard-step-icon">🎯</div>
+                <h5>Step 1: Trial Setup</h5>
+                <p>Enter trial information, phase, therapeutic area, and number of rounds</p>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="wizard-step">
+                <div class="wizard-step-icon">📝</div>
+                <h5>Step 2: Record Entry</h5>
+                <p>Add multiple quality records with requirements, failures, and issues</p>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="wizard-step">
+                <div class="wizard-step-icon">✅</div>
+                <h5>Step 3: Review & Save</h5>
+                <p>Review all records and save them to the system</p>
+            </div>
+        </div>
+        
+        <!-- Start Wizard Button -->
+        <div class="mt-4">
+            <a href="{{ url_for('quality.trial_setup') }}" class="btn btn-start-wizard">
+                <i class="bi bi-rocket-takeoff"></i> Start Wizard
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Records Section -->
+    {% if recent_records %}
+    <div class="recent-records-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="bi bi-clock-history"></i> Your Recent Records</h4>
+            <a href="{{ url_for('quality.view_records') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-list"></i> View All
+            </a>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Trial ID</th>
+                        <th>Phase</th>
+                        <th>Type</th>
+                        <th>Round</th>
+                        <th>Requirements</th>
+                        <th>Failures</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in recent_records %}
+                    <tr>
+                        <td><span class="badge bg-info">{{ record.trial_id }}</span></td>
+                        <td><small>{{ record.phase }}</small></td>
+                        <td><span class="badge bg-primary">{{ record.type_of_requirement }}</span></td>
+                        <td><span class="badge bg-secondary">R{{ record.current_round }}</span></td>
+                        <td><strong>{{ record.total_requirements }}</strong></td>
+                        <td><span class="badge bg-danger">{{ record.total_failures }}</span></td>
+                        <td><small>{{ record.created_at[:10] if record.created_at else 'N/A' }}</small></td>
+                        <td>
+                            <a href="{{ url_for('quality.view_single', record_id=record.record_id) }}" 
+                               class="btn btn-sm btn-primary" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="recent-records-card">
+        <div class="alert alert-info text-center mb-0">
+            <i class="bi bi-info-circle"></i> You haven't created any quality records yet. Start the wizard above to create your first record!
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quick Actions -->
+    <div class="row g-3 mt-3">
+        <div class="col-md-4">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div style="font-size: 3rem;">📊</div>
+                    <h5 class="card-title">View Dashboard</h5>
+                    <p class="card-text text-muted">See analytics and metrics</p>
+                    <a href="{{ url_for('quality.dashboard') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-speedometer2"></i> Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div style="font-size: 3rem;">📋</div>
+                    <h5 class="card-title">View Records</h5>
+                    <p class="card-text text-muted">Browse all quality records</p>
+                    <a href="{{ url_for('quality.view_records') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-list-ul"></i> View All Records
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div style="font-size: 3rem;">🏠</div>
+                    <h5 class="card-title">Back to Home</h5>
+                    <p class="card-text text-muted">Return to main portal</p>
+                    <a href="{{ url_for('home.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

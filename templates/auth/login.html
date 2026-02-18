@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - TestingHub Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.05); }
+        }
+        
+        .main-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-container {
+            max-width: 550px;
+            width: 100%;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .header-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-subtitle {
+            font-size: 1.1rem;
+            font-weight: 500;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-body-content {
+            padding: 2rem 2.5rem 2.5rem;
+        }
+        
+        .nav-tabs {
+            border: none;
+            background-color: #f1f5f9;
+            padding: 0.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            color: #64748b;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .nav-tabs .nav-link:hover:not(.active) {
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+
+        .tab-content {
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .tab-content h5 {
+            color: #1e293b;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8fafc;
+            font-size: 0.95rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            background-color: white;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 0.875rem 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .alert-info {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .form-text {
+            color: #64748b;
+            font-size: 0.825rem;
+            margin-top: 0.25rem;
+        }
+        
+        .password-mismatch {
+            display: none;
+        }
+
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+
+        .form-check-label {
+            color: #475569;
+            font-weight: 500;
+        }
+
+        hr {
+            border-color: #e2e8f0;
+            opacity: 1;
+            margin: 1.5rem 0;
+        }
+
+        .role-description {
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        #auditJustificationDiv {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 1.875rem;
+            }
+
+            .header-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .card-body-content {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 0.625rem 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            .login-container {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-wrapper {
+                padding: 10px;
+            }
+
+            .header-section {
+                padding: 2rem 1.5rem;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .nav-tabs .nav-link {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="header-section">
+                    <h1 class="header-title">
+                        <i class="bi bi-shield-check"></i> TestingHub Portal
+                    </h1>
+                    <p class="header-subtitle">Test Engineer Management System</p>
+                </div>
+                
+                <div class="card-body-content">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {% if category == 'success' %}
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    {% elif category == 'danger' %}
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    {% elif category == 'warning' %}
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-info-circle-fill"></i>
+                                    {% endif %}
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <!-- Tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#login" type="button" role="tab">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#register" type="button" role="tab">
+                                <i class="bi bi-person-plus"></i> Register
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="forgot-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#forgot" type="button" role="tab">
+                                <i class="bi bi-key"></i> Forgot
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="authTabContent">
+                        <!-- LOGIN TAB -->
+                        <div class="tab-pane fade show active" id="login" role="tabpanel">
+                            <h5><i class="bi bi-person-circle"></i> Login to Account</h5>
+                            <form method="POST" action="{{ url_for('auth.login') }}">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">
+                                        <i class="bi bi-person"></i> Username
+                                    </label>
+                                    <input type="text" class="form-control" id="username" name="username" 
+                                           placeholder="Enter your username" required autofocus>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">
+                                        <i class="bi bi-lock"></i> Password
+                                    </label>
+                                    <input type="password" class="form-control" id="password" name="password" 
+                                           placeholder="Enter your password" required>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                    <label class="form-check-label" for="remember">Remember me</label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- REGISTER TAB -->
+                        <div class="tab-pane fade" id="register" role="tabpanel">
+                            <h5><i class="bi bi-person-plus-fill"></i> Create New Account</h5>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> New registrations require Super User approval
+                            </div>
+                            
+                            <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                                <div class="mb-3">
+                                    <label for="reg_username" class="form-label">Username *</label>
+                                    <input type="text" class="form-control" id="reg_username" name="username" 
+                                           required minlength="3" placeholder="Enter username">
+                                    <div class="form-text">At least 3 characters</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="reg_email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="reg_email" name="email" 
+                                           required placeholder="Enter email">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="reg_password" class="form-label">Password *</label>
+                                    <input type="password" class="form-control" id="reg_password" name="password" 
+                                           required minlength="6" placeholder="Enter password">
+                                    <div class="form-text">At least 6 characters</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="reg_confirm" class="form-label">Confirm Password *</label>
+                                    <input type="password" class="form-control" id="reg_confirm" name="confirm_password" 
+                                           required minlength="6" placeholder="Confirm password">
+                                </div>
+                                
+                                <div class="alert alert-warning password-mismatch" id="passwordMismatch">
+                                    <i class="bi bi-exclamation-triangle"></i> Passwords do not match
+                                </div>
+                                
+                                <hr>
+                                
+                                <h6><i class="bi bi-award"></i> Role Selection</h6>
+                                
+                                <div class="mb-3">
+                                    <label for="requested_role" class="form-label">Requested Role *</label>
+                                    <select class="form-select" id="requested_role" name="requested_role" required>
+                                        <option value="user">👤 Regular User - Standard access</option>
+                                        <option value="cdp">📊 CDP - Change Request Tracker specialist</option>
+                                    </select>
+                                    <div class="role-description" id="roleDescription">
+                                        Regular User: Access to Allocation, UAT, Audit, Quality Matrix
+                                    </div>
+                                </div>
+                                
+                                <hr>
+                                
+                                <h6><i class="bi bi-eye"></i> Additional Access (Optional)</h6>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="request_audit_reviewer" 
+                                           name="request_audit_reviewer">
+                                    <label class="form-check-label" for="request_audit_reviewer">
+                                        Request Audit Reviewer Access
+                                    </label>
+                                    <div class="form-text">View all audit documents (read-only)</div>
+                                </div>
+                                
+                                <div class="d-none" id="auditJustificationDiv">
+                                    <label for="audit_justification" class="form-label">
+                                        <i class="bi bi-pencil-square"></i> Justification *
+                                    </label>
+                                    <textarea class="form-control" id="audit_justification" name="audit_justification" 
+                                              rows="3" placeholder="Explain why you need audit reviewer access..." 
+                                              maxlength="500"></textarea>
+                                    <div class="form-text">Required for audit reviewer request</div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100 mt-3">
+                                    <i class="bi bi-person-plus"></i> Register
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- FORGOT PASSWORD TAB -->
+                        <div class="tab-pane fade" id="forgot" role="tabpanel">
+                            <h5><i class="bi bi-key-fill"></i> Reset Password Request</h5>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Password reset requests require Super User approval
+                            </div>
+                            
+                            <form method="POST" action="{{ url_for('auth.forgot_password') }}" id="forgotForm">
+                                <div class="mb-3">
+                                    <label for="forgot_username" class="form-label">Username *</label>
+                                    <input type="text" class="form-control" id="forgot_username" name="username" 
+                                           required placeholder="Enter your username">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="forgot_email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="forgot_email" name="email" 
+                                           required placeholder="Enter your email">
+                                </div>
+                                
+                                <hr>
+                                
+                                <h6>Set Your New Password</h6>
+                                <p class="text-muted small">Choose a new password that you will use after approval</p>
+                                
+                                <div class="mb-3">
+                                    <label for="forgot_new_password" class="form-label">New Password *</label>
+                                    <input type="password" class="form-control" id="forgot_new_password" 
+                                           name="new_password" required minlength="6" placeholder="Enter new password">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="forgot_confirm_password" class="form-label">Confirm New Password *</label>
+                                    <input type="password" class="form-control" id="forgot_confirm_password" 
+                                           name="confirm_password" required minlength="6" 
+                                           placeholder="Confirm new password">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="forgot_reason" class="form-label">Reason (Optional)</label>
+                                    <textarea class="form-control" id="forgot_reason" name="reason" rows="2" 
+                                              placeholder="E.g., Forgot password, account locked..." maxlength="200"></textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-send"></i> Submit Reset Request
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password match validation for registration
+        const regPassword = document.getElementById('reg_password');
+        const regConfirm = document.getElementById('reg_confirm');
+        const mismatchAlert = document.getElementById('passwordMismatch');
+        const registerForm = document.getElementById('registerForm');
+        
+        function checkPasswordMatch() {
+            if (regConfirm.value && regPassword.value !== regConfirm.value) {
+                mismatchAlert.style.display = 'block';
+                regConfirm.setCustomValidity('Passwords do not match');
+            } else {
+                mismatchAlert.style.display = 'none';
+                regConfirm.setCustomValidity('');
+            }
+        }
+        
+        if (regPassword && regConfirm) {
+            regPassword.addEventListener('input', checkPasswordMatch);
+            regConfirm.addEventListener('input', checkPasswordMatch);
+            
+            registerForm.addEventListener('submit', function(e) {
+                if (regPassword.value !== regConfirm.value) {
+                    e.preventDefault();
+                    mismatchAlert.style.display = 'block';
+                    regConfirm.focus();
+                }
+            });
+        }
+
+        // Role selection change handler
+        const requestedRole = document.getElementById('requested_role');
+        const roleDescription = document.getElementById('roleDescription');
+        const auditReviewerCheck = document.getElementById('request_audit_reviewer');
+        const auditJustificationDiv = document.getElementById('auditJustificationDiv');
+        
+        if (requestedRole) {
+            requestedRole.addEventListener('change', function() {
+                if (this.value === 'cdp') {
+                    roleDescription.innerHTML = '<i class="bi bi-exclamation-triangle"></i> CDP: Access ONLY to Change Request Tracker';
+                    roleDescription.style.backgroundColor = '#fef3c7';
+                    roleDescription.style.borderLeft = '4px solid #f59e0b';
+                    auditReviewerCheck.checked = false;
+                    auditReviewerCheck.disabled = true;
+                    auditJustificationDiv.classList.add('d-none');
+                } else {
+                    roleDescription.innerHTML = '<i class="bi bi-check-circle"></i> Regular User: Access to Allocation, UAT, Audit, Quality Matrix';
+                    roleDescription.style.backgroundColor = '#f8fafc';
+                    roleDescription.style.borderLeft = 'none';
+                    auditReviewerCheck.disabled = false;
+                }
+            });
+        }
+        
+        // Audit reviewer justification toggle
+        if (auditReviewerCheck) {
+            auditReviewerCheck.addEventListener('change', function() {
+                if (this.checked) {
+                    auditJustificationDiv.classList.remove('d-none');
+                    document.getElementById('audit_justification').required = true;
+                } else {
+                    auditJustificationDiv.classList.add('d-none');
+                    document.getElementById('audit_justification').required = false;
+                }
+            });
+        }
+
+        // Auto-dismiss alerts after 5 seconds
+        const alerts = document.querySelectorAll('.alert:not(.alert-info)');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        });
+    });
+    </script>
+</body>
+</html>

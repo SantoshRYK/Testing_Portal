@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+{% block title %}Allocation Management - TestingHub Portal{% endblock %}
+
+{% block content %}
+<style>
+    .allocation-hero {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        border-radius: 15px;
+        padding: 3rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(79, 172, 254, 0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .allocation-hero h1 {
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+    
+    .quick-actions {
+        margin-bottom: 2rem;
+    }
+    
+    .action-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
+        height: 100%;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        text-decoration: none;
+    }
+    
+    .action-card-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .action-card h4 {
+        color: #1e293b;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .action-card p {
+        color: #64748b;
+        margin-bottom: 1.5rem;
+    }
+    
+    .action-card .btn {
+        width: 100%;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-label {
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+    }
+    
+    .recent-allocations-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .feature-list {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .feature-item {
+        padding: 1rem;
+        border-left: 4px solid #4facfe;
+        margin-bottom: 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+    
+    .feature-item h5 {
+        color: #1e293b;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature-item p {
+        color: #64748b;
+        margin: 0;
+        font-size: 0.875rem;
+    }
+    
+    .role-info-card {
+        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border-left: 5px solid #0284c7;
+        margin-bottom: 2rem;
+    }
+    
+    .role-info-card h5 {
+        color: #075985;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .role-info-card p {
+        color: #0c4a6e;
+        margin: 0;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Hero Section -->
+    <div class="allocation-hero">
+        <h1><i class="bi bi-calendar-check"></i> Allocation Management</h1>
+        <p class="lead mb-0">Manage test engineer allocations and assignments efficiently</p>
+    </div>
+    
+    <!-- Role-specific Info -->
+    <div class="role-info-card">
+        {% if user.role in ['superuser', 'admin'] %}
+            <h5><i class="bi bi-shield-check"></i> Admin View</h5>
+            <p>You have full access to all allocations and can create, edit, and delete any allocation.</p>
+        {% elif user.role == 'manager' %}
+            <h5><i class="bi bi-briefcase"></i> Manager View</h5>
+            <p>You can view all allocations and access analytics dashboards. Editing and deleting is restricted to allocation creators and admins.</p>
+        {% else %}
+            <h5><i class="bi bi-person"></i> User View</h5>
+            <p>You can create, edit, and delete your own allocations. You can only see allocations you've created.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Quick Stats -->
+    {% if stats %}
+    <div class="stats-card">
+        <h4 class="text-center mb-4"><i class="bi bi-graph-up"></i> Quick Overview</h4>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.total }}</div>
+                    <div class="stat-label">Total Allocations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.build }}</div>
+                    <div class="stat-label">Build Projects</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.change_request }}</div>
+                    <div class="stat-label">Change Requests</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <div class="stat-value">{{ stats.systems }}</div>
+                    <div class="stat-label">Unique Systems</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h3 class="mb-4 text-center"><i class="bi bi-lightning"></i> Quick Actions</h3>
+        <div class="row g-4">
+            <!-- Create New Allocation -->
+            <div class="col-md-4">
+                <a href="{{ url_for('allocations.create') }}" class="action-card">
+                    <div class="action-card-icon">➕</div>
+                    <h4>Create Allocation</h4>
+                    <p>Add a new test engineer allocation</p>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create New
+                    </button>
+                </a>
+            </div>
+            
+            <!-- View All Allocations -->
+            <div class="col-md-4">
+                <a href="{{ url_for('allocations.list_view') }}" class="action-card">
+                    <div class="action-card-icon">📋</div>
+                    <h4>View Allocations</h4>
+                    <p>Browse and manage all allocations</p>
+                    <button class="btn btn-info">
+                        <i class="bi bi-list-ul"></i> View All
+                    </button>
+                </a>
+            </div>
+            
+            <!-- Analytics Dashboard -->
+            <div class="col-md-4">
+                <a href="{{ url_for('allocations.dashboard') }}" class="action-card">
+                    <div class="action-card-icon">📊</div>
+                    <h4>Analytics Dashboard</h4>
+                    <p>View insights and metrics</p>
+                    <button class="btn btn-success">
+                        <i class="bi bi-bar-chart"></i> View Dashboard
+                    </button>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="feature-list">
+        <h4 class="mb-4"><i class="bi bi-star"></i> Key Features</h4>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <h5><i class="bi bi-person-workspace"></i> Engineer Management</h5>
+                    <p>Track test engineer assignments across multiple trials and systems</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <h5><i class="bi bi-calendar3"></i> Timeline Tracking</h5>
+                    <p>Monitor start dates, end dates, and allocation duration</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <h5><i class="bi bi-diagram-3"></i> System Distribution</h5>
+                    <p>Visualize allocations across different systems (Medidata Rave, Veeva Vault, etc.)</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <h5><i class="bi bi-clipboard-data"></i> Analytics & Reports</h5>
+                    <p>Generate insights on workload distribution and efficiency metrics</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <h5><i class="bi bi-funnel"></i> Advanced Filtering</h5>
+                    <p>Filter by system, category, therapeutic area, engineer, and more</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-item">
+                    <h5><i class="bi bi-file-earmark-excel"></i> Excel Export</h5>
+                    <p>Export allocation data to Excel for reporting and analysis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Allocations -->
+    {% if recent_allocations %}
+    <div class="recent-allocations-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="bi bi-clock-history"></i> Recent Allocations</h4>
+            <a href="{{ url_for('allocations.list_view') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-right"></i> View All
+            </a>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Trial ID</th>
+                        <th>Test Engineer</th>
+                        <th>System</th>
+                        <th>Category</th>
+                        <th>Role</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for allocation in recent_allocations %}
+                    <tr>
+                        <td><span class="badge bg-primary">{{ allocation.trial_id }}</span></td>
+                        <td><strong>{{ allocation.test_engineer_name }}</strong></td>
+                        <td><span class="badge bg-info">{{ allocation.system }}</span></td>
+                        <td><small>{{ allocation.trial_category }}</small></td>
+                        <td><small>{{ allocation.role }}</small></td>
+                        <td><small>{{ allocation.start_date }}</small></td>
+                        <td><small>{{ allocation.end_date }}</small></td>
+                        <td>
+                            <a href="{{ url_for('allocations.view', allocation_id=allocation._id) }}" 
+                               class="btn btn-sm btn-primary" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="recent-allocations-card">
+        <div class="alert alert-info text-center mb-0">
+            <i class="bi bi-info-circle"></i> No allocations yet. Click "Create Allocation" above to get started!
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Additional Resources -->
+    <div class="row g-3 mt-3 mb-4">
+        <div class="col-md-4">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div style="font-size: 3rem;">📈</div>
+                    <h5 class="card-title">Workload Analysis</h5>
+                    <p class="card-text text-muted">Track engineer efficiency and workload distribution</p>
+                    <a href="{{ url_for('allocations.dashboard') }}" class="btn btn-outline-success">
+                        <i class="bi bi-graph-up-arrow"></i> View Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div style="font-size: 3rem;">📥</div>
+                    <h5 class="card-title">Export Data</h5>
+                    <p class="card-text text-muted">Download allocation data as Excel file</p>
+                    {% if user.role in ['superuser', 'admin', 'manager'] %}
+                    <a href="{{ url_for('allocations.export_excel') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-download"></i> Export to Excel
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-secondary" disabled>
+                        <i class="bi bi-lock"></i> Manager Access Only
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div style="font-size: 3rem;">🏠</div>
+                    <h5 class="card-title">Back to Home</h5>
+                    <p class="card-text text-muted">Return to the main portal</p>
+                    <a href="{{ url_for('home.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

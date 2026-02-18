@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Audit - Test Engineer Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-clipboard-check"></i> Audit Management</h2>
+                    <p class="text-muted">Comprehensive audit trail and document management system</p>
+                </div>
+                <div>
+                    <span class="badge bg-primary">{{ user.role|upper }}</span>
+                    <span class="badge bg-info">{{ user.username }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Audit Logs</h6>
+                            <h2 class="mt-2 mb-0">{{ stats.total_logs|default(0) }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-list-alt" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Trail Documents</h6>
+                            <h2 class="mt-2 mb-0">{{ stats.trail_documents|default(0) }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-file-alt" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Today's Actions</h6>
+                            <h2 class="mt-2 mb-0">{{ stats.today_actions|default(0) }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-calendar-day" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Active Users</h6>
+                            <h2 class="mt-2 mb-0">{{ stats.active_users|default(0) }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-users" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Action Cards -->
+    <div class="row">
+        <!-- Audit Log Viewer -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-search"></i> Audit Log Viewer</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">View and search through comprehensive audit logs. Track user actions, system changes, and important events.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check text-success"></i> Filter by action, user, and date</li>
+                        <li><i class="bi bi-check text-success"></i> Export audit reports</li>
+                        <li><i class="bi bi-check text-success"></i> Real-time log monitoring</li>
+                    </ul>
+                    {% if user.role in ['superuser', 'admin', 'manager'] %}
+                    <a href="{{ url_for('audit.viewer') }}" class="btn btn-primary">
+                        <i class="bi bi-eye"></i> View Audit Logs
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary" disabled>
+                        <i class="bi bi-lock"></i> Manager Access Required
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Trail Documents -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-folder-open"></i> Trail Audit Documents</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Manage trail audit documents including TE documents, approvals, and TMF/Vault IDs.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check text-success"></i> Create and edit documents</li>
+                        <li><i class="bi bi-check text-success"></i> Track approval workflows</li>
+                        <li><i class="bi bi-check text-success"></i> Export to Excel</li>
+                    </ul>
+                    <a href="{{ url_for('audit.trail_documents') }}" class="btn btn-success">
+                        <i class="bi bi-folder"></i> Manage Documents
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Reports -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Audit Reports</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Generate comprehensive audit reports with statistics, charts, and analytics.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check text-success"></i> Custom date ranges</li>
+                        <li><i class="bi bi-check text-success"></i> Visual analytics</li>
+                        <li><i class="bi bi-check text-success"></i> Export capabilities</li>
+                    </ul>
+                    {% if user.role in ['superuser', 'admin', 'manager'] %}
+                    <a href="{{ url_for('audit.reports') }}" class="btn btn-info">
+                        <i class="bi bi-file-chart-line"></i> View Reports
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary" disabled>
+                        <i class="bi bi-lock"></i> Manager Access Required
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Quick access to common audit-related tasks and operations.</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('audit.create_trail_document') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-plus"></i> Create New Document
+                        </a>
+                        {% if user.role in ['superuser', 'admin'] %}
+                        <a href="{{ url_for('audit.export_trail_documents') }}" class="btn btn-outline-success">
+                            <i class="bi bi-file-excel"></i> Export All Documents
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('audit.trail_documents') }}" class="btn btn-outline-info">
+                            <i class="bi bi-search"></i> Search Documents
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity (if available) -->
+    {% if stats.recent_logs %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Category</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in stats.recent_logs[:5] %}
+                                <tr>
+                                    <td>{{ log.timestamp }}</td>
+                                    <td>{{ log.username }}</td>
+                                    <td><span class="badge bg-primary">{{ log.action }}</span></td>
+                                    <td>{{ log.category }}</td>
+                                    <td>{{ log.details|truncate(50) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if user.role in ['superuser', 'admin', 'manager'] %}
+                    <a href="{{ url_for('audit.viewer') }}" class="btn btn-sm btn-outline-primary">
+                        View All Logs <i class="bi bi-arrow-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}View UAT Record - TestingHub Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-eye text-primary"></i> UAT Record Details
+                    </h2>
+                    <p class="text-muted mb-0">{{ record.trial_id }} - {{ record.uat_round }}</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('uat.view_list') }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                    {% if user.role not in ['manager'] and record.created_by == user.username %}
+                    <a href="{{ url_for('uat.edit', record_id=record.id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Details Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-info-circle"></i> Record Information
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-md-6">
+                    <h6 class="border-bottom pb-2 mb-3 text-primary">
+                        <i class="fas fa-clipboard"></i> Basic Information
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small">Record ID</label>
+                        <p class="mb-0"><strong>{{ record.id }}</strong></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Trial ID</label>
+                        <p class="mb-0"><strong>{{ record.trial_id }}</strong></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">UAT Round</label>
+                        <p class="mb-0"><strong>{{ record.uat_round }}</strong></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Category</label>
+                        <p class="mb-0">
+                            {% if record.category_type == 'Build' %}
+                            <span class="badge bg-primary">🏗️ Build</span>
+                            {% else %}
+                            <span class="badge bg-info">🔄 Change Request</span>
+                            {% endif %}
+                            <strong>{{ record.category }}</strong>
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Status</label>
+                        <p class="mb-0">
+                            {% if record.status == 'Completed' %}
+                            <span class="badge bg-success">✅ {{ record.status }}</span>
+                            {% elif record.status == 'In Progress' %}
+                            <span class="badge bg-warning">🔄 {{ record.status }}</span>
+                            {% elif record.status == 'On Hold' %}
+                            <span class="badge bg-secondary">⏸️ {{ record.status }}</span>
+                            {% elif record.status == 'Cancelled' %}
+                            <span class="badge bg-danger">❌ {{ record.status }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">⏳ {{ record.status }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Result</label>
+                        <p class="mb-0">
+                            {% if record.result == 'Pass' %}
+                            <span class="badge bg-success">✅ {{ record.result }}</span>
+                            {% elif record.result == 'Fail' %}
+                            <span class="badge bg-danger">❌ {{ record.result }}</span>
+                            {% elif record.result == 'Partial Pass' %}
+                            <span class="badge bg-warning">⚠️ {{ record.result }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary">⏳ {{ record.result }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4 text-info">
+                        <i class="fas fa-calendar"></i> Planned Dates
+                    </h6>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Planned Start Date</label>
+                        <p class="mb-0"><strong>{{ record.planned_start_date }}</strong></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Planned End Date</label>
+                        <p class="mb-0"><strong>{{ record.planned_end_date }}</strong></p>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-md-6">
+                    <h6 class="border-bottom pb-2 mb-3 text-success">
+                        <i class="fas fa-calendar-check"></i> Actual Dates
+                    </h6>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Actual Start Date</label>
+                        <p class="mb-0">
+                            {% if record.actual_start_date %}
+                            <strong>{{ record.actual_start_date }}</strong>
+                            {% if record.actual_start_date != record.planned_start_date %}
+                            <span class="badge bg-warning ms-2"><i class="fas fa-exclamation-triangle"></i> Different</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">⏳ Not Started</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Actual End Date</label>
+                        <p class="mb-0">
+                            {% if record.actual_end_date %}
+                            <strong>{{ record.actual_end_date }}</strong>
+                            {% if record.actual_end_date != record.planned_end_date %}
+                            <span class="badge bg-warning ms-2"><i class="fas fa-exclamation-triangle"></i> Different</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">⏳ Not Completed</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    {% if record.date_difference_reason %}
+                    <div class="alert alert-warning mt-3">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle"></i> Reason for Date Difference
+                        </h6>
+                        <p class="mb-0">{{ record.date_difference_reason }}</p>
+                    </div>
+                    {% endif %}
+
+                    <h6 class="border-bottom pb-2 mb-3 mt-4 text-secondary">
+                        <i class="fas fa-user"></i> Record Metadata
+                    </h6>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Created By</label>
+                        <p class="mb-0"><strong>{{ record.created_by }}</strong></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Created At</label>
+                        <p class="mb-0">{{ record.created_at }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small">Last Updated</label>
+                        <p class="mb-0">{{ record.updated_at }}</p>
+                    </div>
+
+                    {% if record.updated_by %}
+                    <div class="mb-3">
+                        <label class="text-muted small">Updated By</label>
+                        <p class="mb-0">{{ record.updated_by }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Body / Comments Card -->
+    {% if record.email_body %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-envelope"></i> Email Body / Additional Information
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="bg-light p-3 rounded" style="white-space: pre-wrap;">{{ record.email_body }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="row">
+                {% if user.role not in ['manager'] and record.created_by == user.username %}
+                <!-- User Actions -->
+                <div class="col-md-4">
+                    <a href="{{ url_for('uat.edit', record_id=record.id) }}" class="btn btn-warning w-100 mb-2">
+                        <i class="fas fa-edit"></i> Edit Record
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    {% if email_configured %}
+                    <form method="POST" action="{{ url_for('uat.send_email_notification', record_id=record.id) }}" class="d-inline w-100">
+                        <button type="submit" class="btn btn-info w-100 mb-2">
+                            <i class="fas fa-envelope"></i> Send Email
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash"></i> Delete Record
+                    </button>
+                </div>
+                {% else %}
+                <!-- Manager Actions -->
+                <div class="col-12">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        {% if user.role == 'manager' %}
+                        <strong>Manager View:</strong> You can view this record but cannot edit or delete it.
+                        {% else %}
+                        <strong>View Only:</strong> You can only view records created by you.
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Are you sure you want to delete this UAT record?</strong></p>
+                <p class="mb-0">
+                    Trial ID: <strong>{{ record.trial_id }}</strong><br>
+                    UAT Round: <strong>{{ record.uat_round }}</strong>
+                </p>
+                <p class="text-danger mt-3 mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> This action cannot be undone!
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <form method="POST" action="{{ url_for('uat.delete', record_id=record.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Permanently
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

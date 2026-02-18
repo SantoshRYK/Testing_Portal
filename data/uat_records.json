@@ -1,0 +1,22 @@
+[
+    {
+        "id": "20260218100912",
+        "trial_id": "NN8898-0076",
+        "uat_round": "1",
+        "category": "Build",
+        "category_type": "Build",
+        "planned_start_date": "2026-02-04",
+        "planned_end_date": "2026-02-17",
+        "actual_start_date": "2026-02-05",
+        "actual_end_date": "2026-02-17",
+        "date_difference_reason": "Document updated lately",
+        "status": "Completed",
+        "result": "Fail",
+        "email_body": "UAT failed with Notification",
+        "created_by": "NHYK",
+        "created_at": "2026-02-18 10:09:12",
+        "updated_at": "2026-02-18 10:18:45",
+        "record_type": "uat",
+        "updated_by": "NHYK"
+    }
+]

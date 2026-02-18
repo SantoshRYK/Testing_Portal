@@ -1,0 +1,63 @@
+{
+    "Santosh YK": {
+        "password": "e5bdb948e45ee33529aebca38e848e4f6d0f03d5d6b51ec67314751da7a3f19c",
+        "email": "nhyk@novonordisk.com",
+        "role": "superuser",
+        "status": "active",
+        "created_at": "2026-02-12 14:17:48"
+    },
+    "NHYK": {
+        "password": "cf80cd8aed482d5d1527d7dc72fceff84e6326592848447d2dc0b0e87dfc9a90",
+        "email": "nhyk@novonordisk.com",
+        "role": "user",
+        "status": "active",
+        "created_at": "2026-02-13 10:14:08",
+        "approved_by": "Santosh YK",
+        "is_audit_reviewer": false,
+        "audit_reviewer_requested": false,
+        "audit_reviewer_justification": null,
+        "audit_reviewer_approved_by": null,
+        "audit_reviewer_approved_at": null
+    },
+    "GEGE": {
+        "password": "cf80cd8aed482d5d1527d7dc72fceff84e6326592848447d2dc0b0e87dfc9a90",
+        "email": "gege@novonordisk.com",
+        "role": "manager",
+        "status": "active",
+        "created_at": "2026-02-13 11:28:15",
+        "approved_by": "Santosh YK",
+        "is_audit_reviewer": false,
+        "audit_reviewer_requested": false,
+        "audit_reviewer_justification": null,
+        "audit_reviewer_approved_by": null,
+        "audit_reviewer_approved_at": null
+    },
+    "SZUD": {
+        "password": "cf80cd8aed482d5d1527d7dc72fceff84e6326592848447d2dc0b0e87dfc9a90",
+        "email": "szud@novonordisk.com",
+        "role": "user",
+        "status": "active",
+        "is_active": true,
+        "created_at": "2026-02-17 22:42:09",
+        "approved_by": "Santosh YK",
+        "is_audit_reviewer": true,
+        "audit_reviewer_requested": false,
+        "audit_reviewer_justification": "Mock audit",
+        "audit_reviewer_approved_by": "Santosh YK",
+        "audit_reviewer_approved_at": "2026-02-17 23:18:56"
+    },
+    "SNHN": {
+        "password": "cf80cd8aed482d5d1527d7dc72fceff84e6326592848447d2dc0b0e87dfc9a90",
+        "email": "snhk@novonordisk.com",
+        "role": "user",
+        "status": "active",
+        "is_active": true,
+        "created_at": "2026-02-17 23:21:30",
+        "approved_by": "Santosh YK",
+        "is_audit_reviewer": true,
+        "audit_reviewer_requested": false,
+        "audit_reviewer_justification": "Required",
+        "audit_reviewer_approved_by": "Santosh YK",
+        "audit_reviewer_approved_at": "2026-02-17 23:21:38"
+    }
+}

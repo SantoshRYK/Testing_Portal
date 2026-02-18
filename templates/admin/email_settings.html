@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Email Settings - TestingHub Portal{% endblock %}
+
+{% block content %}
+<style>
+    .email-hero {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        border-radius: 15px;
+        padding: 3rem;
+        color: white;
+        box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .email-hero h1 {
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    
+    .settings-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Hero Section -->
+    <div class="email-hero">
+        <h1><i class="bi bi-envelope"></i> Email Configuration</h1>
+        <p class="lead mb-0">Configure SMTP settings for email notifications</p>
+    </div>
+    
+    <div class="alert alert-warning">
+        <i class="bi bi-wrench"></i> <strong>Under Construction:</strong> Email settings functionality coming soon
+    </div>
+    
+    <!-- Email Settings Form -->
+    <div class="settings-card">
+        <h4 class="mb-4"><i class="bi bi-gear"></i> SMTP Configuration</h4>
+        
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="smtp_server" class="form-label">SMTP Server *</label>
+                    <input type="text" class="form-control" id="smtp_server" name="smtp_server" 
+                           value="{{ email_config.smtp_server }}" 
+                           placeholder="smtp.gmail.com">
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="smtp_port" class="form-label">SMTP Port *</label>
+                    <input type="number" class="form-control" id="smtp_port" name="smtp_port" 
+                           value="{{ email_config.smtp_port }}" 
+                           placeholder="587">
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="smtp_user" class="form-label">SMTP Username</label>
+                    <input type="text" class="form-control" id="smtp_user" name="smtp_user" 
+                           value="{{ email_config.smtp_user }}" 
+                           placeholder="your-email@domain.com">
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="smtp_password" class="form-label">SMTP Password</label>
+                    <input type="password" class="form-control" id="smtp_password" name="smtp_password" 
+                           placeholder="••••••••">
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="from_email" class="form-label">From Email *</label>
+                    <input type="email" class="form-control" id="from_email" name="from_email" 
+                           value="{{ email_config.from_email }}" 
+                           placeholder="noreply@testinghub.com">
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="from_name" class="form-label">From Name</label>
+                    <input type="text" class="form-control" id="from_name" name="from_name" 
+                           value="TestingHub Portal" 
+                           placeholder="TestingHub Portal">
+                </div>
+                
+                <div class="col-md-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="use_tls" name="use_tls" 
+                               {% if email_config.use_tls %}checked{% endif %}>
+                        <label class="form-check-label" for="use_tls">
+                            Use TLS Encryption (Recommended)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <hr>
+                    <button type="submit" class="btn btn-primary" disabled>
+                        <i class="bi bi-save"></i> Save Email Settings (Coming Soon)
+                    </button>
+                    <button type="button" class="btn btn-info" disabled>
+                        <i class="bi bi-envelope"></i> Send Test Email (Coming Soon)
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

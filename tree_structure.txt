@@ -1,0 +1,163 @@
+├── backups
+│   ├── 2026-02-13_15-54-04_manual
+│   │   ├── allocations.json
+│   │   ├── audit_logs.json
+│   │   ├── backup_info.json
+│   │   ├── change_requests.json
+│   │   ├── email_config.json
+│   │   ├── password_reset_requests.json
+│   │   ├── pending_users.json
+│   │   ├── trail_documents.json
+│   │   ├── uat_records.json
+│   │   └── users.json
+│   └── 2026-02-13_15-55-09_automatic
+│       ├── allocations.json
+│       ├── audit_logs.json
+│       ├── backup_info.json
+│       ├── change_requests.json
+│       ├── email_config.json
+│       ├── password_reset_requests.json
+│       ├── pending_users.json
+│       ├── trail_documents.json
+│       ├── uat_records.json
+│       └── users.json
+├── blueprints
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── allocations.py
+│   ├── audit.py
+│   ├── auth.py
+│   ├── change_request.py
+│   ├── home.py
+│   ├── quality.py
+│   └── uat.py
+├── data
+│   ├── allocations.json
+│   ├── audit_logs.json
+│   ├── change_requests.json
+│   ├── email_config.json
+│   ├── password_reset_requests.json
+│   ├── pending_users.json
+│   ├── quality_records.json
+│   ├── trail_documents.json
+│   ├── uat_records.json
+│   └── users.json
+├── docs
+│   ├── API.md
+│   ├── AUDIT_REQUIREMENTS.md
+│   ├── CHANGELOG.md
+│   └── UAT_REQUIREMENTS.md
+├── models
+│   ├── __init__.py
+│   ├── allocation.py
+│   ├── audit.py
+│   ├── change_request.py
+│   ├── flask_user.py
+│   ├── quality.py
+│   ├── uat.py
+│   └── user.py
+├── scripts
+│   ├── backup_now.py
+│   ├── check_data_protection.py
+│   ├── cleanup_old_backups.py
+│   ├── complete_reset.py
+│   ├── fix_users.py
+│   ├── list_backups.py
+│   ├── lock_data.py
+│   ├── restore_backup.py
+│   ├── unlock_data.py
+│   └── verify_data_integrity.py
+├── services
+│   ├── __init__.py
+│   ├── allocation_service.py
+│   ├── audit_service.py
+│   ├── change_request_service.py
+│   ├── quality_service.py
+│   ├── uat_service.py
+│   ├── user_service.py
+│   └── user_service_OLD.py
+├── static
+│   ├── css
+│   │   └── custom.css
+│   ├── images
+│   └── js
+│       └── main.js
+├── templates
+│   ├── admin
+│   │   ├── partials
+│   │   │   ├── add_user.html
+│   │   │   ├── audit_reviewers.html
+│   │   │   ├── delete_user.html
+│   │   │   ├── manage_users.html
+│   │   │   ├── password_resets.html
+│   │   │   ├── pending_approvals.html
+│   │   │   └── view_users.html
+│   │   ├── admin_user.html
+│   │   ├── email_settings.html
+│   │   ├── manager.html
+│   │   └── superuser.html
+│   ├── allocations
+│   │   ├── create.html
+│   │   ├── dashboard.html
+│   │   ├── edit.html
+│   │   ├── index.html
+│   │   ├── list.html
+│   │   └── view.html
+│   ├── audit
+│   │   ├── main.html
+│   │   ├── reports.html
+│   │   ├── reviewer_documents.html
+│   │   ├── reviewer_view_document.html
+│   │   ├── trail_document_form.html
+│   │   ├── trail_documents.html
+│   │   └── viewer.html
+│   ├── auth
+│   │   ├── forgot_password.html
+│   │   ├── login.html
+│   │   └── register.html
+│   ├── change_request
+│   │   ├── list.html
+│   │   └── main.html
+│   ├── errors
+│   │   ├── 403.html
+│   │   ├── 404.html
+│   │   └── 500.html
+│   ├── home
+│   │   └── index.html
+│   ├── quality
+│   │   ├── create.html
+│   │   ├── dashboard.html
+│   │   ├── edit.html
+│   │   ├── main.html
+│   │   ├── record_entry.html
+│   │   ├── trial_setup.html
+│   │   ├── view.html
+│   │   └── view_single.html
+│   ├── uat
+│   │   ├── create.html
+│   │   ├── dashboard.html
+│   │   ├── edit.html
+│   │   ├── main.html
+│   │   └── view.html
+│   ├── base.html
+│   ├── index.html
+│   └── login.html
+├── utils
+│   ├── __init__.py
+│   ├── auth.py
+│   ├── auth_flask.py
+│   ├── backup_manager.py
+│   ├── data_protection.py
+│   ├── database.py
+│   ├── email_handler.py
+│   ├── excel_handler.py
+│   ├── helpers.py
+│   └── validators.py
+├── Dockerfile
+├── Procfile
+├── README.md
+├── config.py
+├── flask_app.py
+├── requirements.txt
+├── show_structure.py
+└── tree_structure.txt

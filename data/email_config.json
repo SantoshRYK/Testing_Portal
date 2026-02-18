@@ -1,0 +1,8 @@
+{
+  "enabled": false,
+  "admin_email": "admin@example.com",
+  "smtp_server": "",
+  "smtp_port": 587,
+  "smtp_username": "",
+  "smtp_password": ""
+}

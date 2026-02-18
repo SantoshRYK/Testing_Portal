@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}View Document - {{ document.trail }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{{ url_for('audit.reviewer_all_documents') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to All Documents
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h4 class="mb-0 text-white">
+                <i class="fas fa-file-alt"></i> Trail Audit Document
+                <span class="badge bg-warning text-dark float-end">READ-ONLY</span>
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Basic Information</h5>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <th width="40%">Trail ID:</th>
+                            <td><span class="badge bg-info">{{ document.trail }}</span></td>
+                        </tr>
+                        <tr>
+                            <th>Category:</th>
+                            <td>
+                                {% if document.category == 'Build' %}
+                                <span class="badge bg-primary">🏗️ Build</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">🔄 Change Request</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if document.cr_number %}
+                        <tr>
+                            <th>CR Number:</th>
+                            <td><code>{{ document.cr_number }}</code></td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th>TE1:</th>
+                            <td>{{ document.te1 }}</td>
+                        </tr>
+                        <tr>
+                            <th>TE2:</th>
+                            <td>{{ document.te2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Document Name:</th>
+                            <td><strong>{{ document.document_name }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>TE Document:</th>
+                            <td>
+                                {% if document.te_document == 'Yes' %}
+                                <span class="badge bg-success">✅ Yes</span>
+                                {% else %}
+                                <span class="badge bg-secondary">📄 No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Document Details</h5>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <th width="40%">UAT Round:</th>
+                            <td>{{ document.uat_round }}</td>
+                        </tr>
+                        <tr>
+                            <th>TMF/Vault ID:</th>
+                            <td><code class="text-primary fs-5">{{ document.tmf_vault_id }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>Go Live Date:</th>
+                            <td>{{ document.go_live_date }}</td>
+                        </tr>
+                    </table>
+
+                    <h5 class="border-bottom pb-2 mt-4">Approval Dates</h5>
+                    <table class="table table-sm table-borderless">
+                        {% if document.te_document == 'Yes' %}
+                        <tr>
+                            <th width="40%">TE1 Approval:</th>
+                            <td>{{ document.te1_approval_date or 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>TE2 Approval:</th>
+                            <td>{{ document.te2_approval_date or 'N/A' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <th width="40%">CTDM Approval:</th>
+                            <td>{{ document.ctdm_approval_date or 'N/A' }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2">Metadata</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="20%">Created By:</th>
+                            <td><span class="badge bg-info">{{ document.created_by }}</span></td>
+                        </tr>
+                        <tr>
+                            <th>Created At:</th>
+                            <td>{{ document.created_at }}</td>
+                        </tr>
+                        {% if document.updated_at %}
+                        <tr>
+                            <th>Last Updated:</th>
+                            <td>{{ document.updated_at }} by <span class="badge bg-secondary">{{ document.updated_by }}</span></td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-center bg-light">
+            <p class="text-muted mb-0">
+                <i class="fas fa-lock"></i> This is a read-only view. You cannot edit or delete this document.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

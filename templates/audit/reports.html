@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Reports - Test Engineer Portal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('audit.main') }}">Audit</a></li>
+                <li class="breadcrumb-item active">Reports</li>
+            </ol>
+        </nav>
+        
+        <h2 class="mb-4"><i class="bi bi-bar-chart"></i> Audit Reports</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5>Generate Report</h5>
+                <form method="POST" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Report Type</label>
+                        <select class="form-select" name="report_type">
+                            <option value="user_activity">User Activity Report</option>
+                            <option value="compliance">Compliance Report</option>
+                            <option value="summary">Activity Summary</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-control" name="start_date">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-control" name="end_date">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Generate</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
